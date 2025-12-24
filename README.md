@@ -1,2 +1,3 @@
 # avm
-a VM designed for affine (one-shot) continuation
+
+A VM designed for affine (one-shot) continuation.
