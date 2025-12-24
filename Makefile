@@ -1,10 +1,19 @@
+CC = gcc
+CFLAGS = -std=c11 -Wall -Wextra
 
-CC = gcc -std=c11
+SRCS = $(wildcard ./src/*.c)
+OBJS = $(SRCS:.c=.o)
+TARGET = avm
 
-all: avm
+all: $(TARGET)
 
-avm: src/main.c
-	$(CC) $^ -o $@
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $@
+
+src/%.o: src/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm ./avm
+	rm -f $(TARGET) $(OBJS)
+
+.PHONY: all clean
