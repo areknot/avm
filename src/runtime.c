@@ -1,6 +1,8 @@
 #include "runtime.h"
 #include <stdlib.h>
 
+// TODO: Add error handling
+
 ZAM_value_t* pop(ZAM_stack_t** stp) {
   if (stp == NULL || *stp == NULL) return NULL;
 

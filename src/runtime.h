@@ -20,8 +20,8 @@ struct ZAM_value_node {
   ZAM_value_kind kind;
   int int_value;
   _Bool bool_value;
-  ZAM_code_t* closure_code;
-  ZAM_env_t* closure_env;
+  int addr;
+  ZAM_env_t* env;
 };
 
 
