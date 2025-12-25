@@ -45,3 +45,5 @@ struct ZAM_env_node {
 ZAM_env_t* extend(ZAM_env_t *env, ZAM_value_t *val);
 
 ZAM_value_t* lookup(ZAM_env_t *env, int index);
+
+void print_value(ZAM_value_t*);
