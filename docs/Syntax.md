@@ -1,16 +1,15 @@
 
+
 # Syntax
 
 ## Syntax of the bytecode
 
 A bytecode file records a series of instructions, possibly tagged by a
-preceding label, separated by either newlines or semicolons. Spaces
-except newline are insignificant.
+preceding label. Spaces and semicolons are insignificant (i.e., they
+may appear anywhere).
 
-	<code>  ::= <block> | <block> <newline> <code>
-	<block> ::= <inst>
-	          | <lab> : <inst>
-	<newline> ∈ {'\n', ';'}
+	<code>  ::= <block> | <block> <code>
+	<block> ::= <inst>  | <lab> : <inst>
 
 Each instruction takes one of the following forms.
 
@@ -27,7 +26,7 @@ and `<cmd/1>` takes one of the following forms,
 	          | load <bool>
 			  | acc  <nat>
 	          | b    <lab> { unconditional jump }
-			  | bf   <lab> {     false-jump     }
+			  | bf   <lab> {   jump-if-false    }
 			  | clos <lab> {      closure       }
 			  
 	<nat>  ∈ {0, 1, …}
@@ -35,4 +34,4 @@ and `<cmd/1>` takes one of the following forms,
 	<lab>  ∈ ℒ⁺
 
 where `ℒ` denotes the set of characters excluding `:`, `;` and spaces.
-Comments are followed by `#` and ended by a `<newline>`.
+Comments are followed by `#` and ended by a newline.

@@ -7,39 +7,11 @@
       "name": "code"
     },
     "code": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "block"
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SEQ",
-            "members": [
-              {
-                "type": "REPEAT1",
-                "content": {
-                  "type": "SYMBOL",
-                  "name": "newline"
-                }
-              },
-              {
-                "type": "SYMBOL",
-                "name": "block"
-              }
-            ]
-          }
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "newline"
-          }
-        }
-      ]
+      "type": "REPEAT1",
+      "content": {
+        "type": "SYMBOL",
+        "name": "block"
+      }
     },
     "block": {
       "type": "SEQ",
@@ -273,16 +245,16 @@
           }
         ]
       }
-    },
-    "newline": {
-      "type": "PATTERN",
-      "value": "[;\\n]"
     }
   },
   "extras": [
     {
       "type": "PATTERN",
       "value": "\\s"
+    },
+    {
+      "type": "STRING",
+      "value": ";"
     },
     {
       "type": "SYMBOL",
