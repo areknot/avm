@@ -55,3 +55,35 @@ failure is detailed by a data structure `AVM_parse_error` in
 the error, and other fields are for locating the error. One can retrieve 
 the error object by calling `AVM_parse_error* last_parse_error()` 
 immediately after the failure of parsing.
+
+## Example
+
+Below is an example of the bytecode. The example is translated from
+[here](https://www.cs.tsukuba.ac.jp/~kam/jikken/zam.html), with slight
+modification.
+
+```
+      clos Fsum
+      let
+      mark
+      load 0
+      load 3
+      acc 0
+      app
+      endlet
+Fsum: grab
+      load 0
+      acc 2
+      eq
+      bf L00
+      acc 0
+      ret
+L00:  acc 0
+      acc 2
+      add
+      load 1
+      acc 2
+      add
+      acc 3
+      tapp
+```
