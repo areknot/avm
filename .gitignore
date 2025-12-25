@@ -1,5 +1,6 @@
-# avm executable
+# executables
 avm
+interp_tests
 
 # Prerequisites
 *.d
