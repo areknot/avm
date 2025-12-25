@@ -1,6 +1,7 @@
 # executables
 avm
 interp_tests
+avm-echo
 
 # Prerequisites
 *.d
