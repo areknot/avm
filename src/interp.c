@@ -31,6 +31,21 @@ void run_code(ZAM_code_t *src) {
   print_result(res);
 }
 
+ZAM_value_t *run_code_with_result(ZAM_code_t *src) {
+  // Initialization.
+  code = src;
+  pc = 0;
+  astack = NULL;
+  rstack = NULL;
+  env = NULL;
+
+  if (code == NULL) return NULL;
+
+  len = code->instr_size;
+
+  return run();
+}
+
 ZAM_value_t epsilon = { .kind = ZAM_Epsilon };
 
 ZAM_value_t *new_int(int i);
