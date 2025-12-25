@@ -1,0 +1,288 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
+  "name": "avm",
+  "rules": {
+    "source_file": {
+      "type": "SYMBOL",
+      "name": "code"
+    },
+    "code": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "block"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "newline"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "block"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "lab"
+                },
+                {
+                  "type": "STRING",
+                  "value": ":"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "inst"
+        }
+      ]
+    },
+    "inst": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "cmd0"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "cmd1"
+        }
+      ]
+    },
+    "cmd0": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "let"
+        },
+        {
+          "type": "STRING",
+          "value": "endlet"
+        },
+        {
+          "type": "STRING",
+          "value": "add"
+        },
+        {
+          "type": "STRING",
+          "value": "eq"
+        },
+        {
+          "type": "STRING",
+          "value": "app"
+        },
+        {
+          "type": "STRING",
+          "value": "tapp"
+        },
+        {
+          "type": "STRING",
+          "value": "mark"
+        },
+        {
+          "type": "STRING",
+          "value": "grab"
+        },
+        {
+          "type": "STRING",
+          "value": "ret"
+        },
+        {
+          "type": "STRING",
+          "value": "halt"
+        }
+      ]
+    },
+    "cmd1": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "load"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "acc"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "b"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "bf"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "clos"
+        }
+      ]
+    },
+    "load": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "load"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "nat"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "bool"
+            }
+          ]
+        }
+      ]
+    },
+    "acc": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "acc"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "nat"
+        }
+      ]
+    },
+    "b": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "b"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lab"
+        }
+      ]
+    },
+    "bf": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "bf"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lab"
+        }
+      ]
+    },
+    "clos": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "clos"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lab"
+        }
+      ]
+    },
+    "nat": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PATTERN",
+          "value": "[1-9][0-9]*"
+        },
+        {
+          "type": "STRING",
+          "value": "0"
+        }
+      ]
+    },
+    "bool": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "true"
+        },
+        {
+          "type": "STRING",
+          "value": "false"
+        }
+      ]
+    },
+    "lab": {
+      "type": "PATTERN",
+      "value": "[^: \\t\\r\\n]+"
+    },
+    "comment": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "#"
+          },
+          {
+            "type": "PATTERN",
+            "value": ".*"
+          }
+        ]
+      }
+    },
+    "newline": {
+      "type": "PATTERN",
+      "value": "[;\\n]"
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "\\s"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "comment"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": [],
+  "reserved": {}
+}
