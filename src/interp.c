@@ -12,7 +12,7 @@ ZAM_stack_t *rstack;
 ZAM_env_t *env;
 
 ZAM_value_t *run();
-void print_result(ZAM_value_t*);
+
 
 void run_code(ZAM_code_t *src) {
   // Initialization.
@@ -28,7 +28,8 @@ void run_code(ZAM_code_t *src) {
 
   ZAM_value_t *res = run();
 
-  print_result(res);
+  printf("Result: ");
+  print_value(res);
 }
 
 ZAM_value_t *run_code_with_result(ZAM_code_t *src) {
@@ -61,26 +62,6 @@ void error(char *fmt, ... ) {
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
     exit(1);
-}
-
-void print_result(ZAM_value_t *val) {
-  switch (val->kind) {
-  case ZAM_IntVal:
-    printf("Result: %d\n", val->int_value);
-    break;
-
-  case ZAM_BoolVal:
-    printf("Result: %s\n", val->bool_value ? "true" : "false");
-    break;
-
-  case ZAM_ClosVal:
-    printf("Result: <fun>");
-    break;
-
-  case ZAM_Epsilon:
-    // Unreachable?
-    break;
-  }
 }
 
 ZAM_value_t *run() {
