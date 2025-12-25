@@ -1,7 +1,11 @@
 CC = gcc
-CFLAGS = -std=c11 -Wall -Wextra
+INCLUDES = -I./third_party/tree-sitter/include \
+           -I./third_party/tree-sitter/src
+CFLAGS = -std=gnu11 -Wall -Wextra $(INCLUDES)
 
-SRCS = $(wildcard ./src/*.c)
+SRCS = $(wildcard ./src/*.c)              \
+       ./src/tree-sitter-avm/src/parser.c \
+       ./third_party/tree-sitter/src/lib.c
 OBJS = $(SRCS:.c=.o)
 CORE_OBJS = $(filter-out ./src/main.o,$(OBJS))
 TARGET = avm
@@ -24,9 +28,17 @@ src/%.o: src/%.c
 tests/%.o: tests/%.c
 	$(CC) $(CFLAGS) -Isrc -c $< -o $@
 
-
 test: $(TEST_TARGET)
 	./$(TEST_TARGET)
+
+tree-sitter-avm: src/tree-sitter-avm/grammar.js
+	cd src/tree-sitter-avm; tree-sitter generate
+
+./third_party/tree-sitter/src/lib.o: ./third_party/tree-sitter/src/lib.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+./src/tree-sitter-avm/src/parser.o: ./src/tree-sitter-avm/src/parser.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 clean:
 	rm -f $(TARGET) $(TEST_TARGET) $(OBJS) $(TEST_OBJS)

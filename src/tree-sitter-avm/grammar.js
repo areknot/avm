@@ -12,7 +12,7 @@ export default grammar({
 
   rules: {
       source_file: $ => $.code,
-      code: $ => seq($.block, repeat(seq($.newline, $.block))),
+      code: $ => seq($.block, repeat(seq(repeat1($.newline), $.block)), repeat($.newline)),
       block: $ => seq(optional(seq($.lab, ":")), $.inst),
       inst: $ => choice($.cmd0, $.cmd1),
       cmd0: $ => choice(
@@ -27,7 +27,7 @@ export default grammar({
       clos: $ => seq('clos', $.lab),
       nat: $ => choice(/[1-9][0-9]*/, '0'),
       bool: $ => choice('true', 'false'),
-      lab: $ => /[^: \t\r\n]+/,
+      lab: $ => /[^:; \t\r\n]+/,
       comment: $ => token(seq("#", /.*/)),
       newline: $ => /[;\n]/
   },

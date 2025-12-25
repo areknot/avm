@@ -20,6 +20,7 @@ typedef struct ZAM_instr {
   _Bool            const_bool;
   int              access;
   int              addr; // for Closure and Jumps
+  void*            payload;
 } ZAM_instr_t;
 
 typedef struct ZAM_code {

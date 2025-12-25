@@ -19,14 +19,24 @@
             "type": "SEQ",
             "members": [
               {
-                "type": "SYMBOL",
-                "name": "newline"
+                "type": "REPEAT1",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "newline"
+                }
               },
               {
                 "type": "SYMBOL",
                 "name": "block"
               }
             ]
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "newline"
           }
         }
       ]
@@ -246,7 +256,7 @@
     },
     "lab": {
       "type": "PATTERN",
-      "value": "[^: \\t\\r\\n]+"
+      "value": "[^:; \\t\\r\\n]+"
     },
     "comment": {
       "type": "TOKEN",

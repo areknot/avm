@@ -34,5 +34,5 @@ and `<cmd/1>` takes one of the following forms,
 	<bool> ∈ {true, false}
 	<lab>  ∈ ℒ⁺
 
-where `ℒ` denotes the set of characters excluding `:` and spaces.
+where `ℒ` denotes the set of characters excluding `:`, `;` and spaces.
 Comments are followed by `#` and ended by a `<newline>`.
