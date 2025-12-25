@@ -5,7 +5,7 @@
 #include <tree_sitter/api.h>
 
 #include "code.h"
-#include "parser.h"
+#include "avm_parser.h"
 #include "tree-sitter-avm/src/tree_sitter/array.h"
 
 #define AVM_LABEL_SIZE   200
@@ -36,8 +36,12 @@ AVM_parse_error *last_parse_error() { return &error; }
   do {                                                                         \
     TSNode _x = node;                                                          \
     if (strcmp(ts_node_type(_x), type) != 0) {                                 \
-      REPORT(errno, _x, "Expected <%s>, but found <%s>", type,                 \
-             ts_node_type(_x));                                                \
+      if (node_is_error(_x)) {                                              \
+        REPORT(errno, _x, "A syntax error%s", "");                 \
+      } else {                                                                 \
+        REPORT(errno, _x, "Expected <%s>, but found <%s>", type,               \
+               ts_node_type(_x));                                              \
+      }                                                                        \
     }                                                                          \
   } while (false)
 
@@ -63,6 +67,10 @@ void report_error(TSNode node, char *message) {
   error.end_col = ts_node_end_point(node).column;
 }
 
+bool node_is_error(TSNode n) {
+  return (strcmp(ts_node_type(n), "ERROR") == 0);
+}
+
 typedef Array(ZAM_instr_t) * ZAM_instr_array;
 
 typedef Array(location) * location_array;
@@ -83,25 +91,25 @@ void parse_tree_read_text(char *source, TSNode node, char *buffer, int size,
 
 void parse_tree_read_cmd0(char *cmd0, TSNode node, ZAM_instr_kind *kind,
                           int *errno) {
-  if (strcmp(cmd0, "let"))
+  if (strcmp(cmd0, "let") == 0)
     *kind = ZAM_Let;
-  else if (strcmp(cmd0, "endlet"))
+  else if (strcmp(cmd0, "endlet") == 0)
     *kind = ZAM_EndLet;
-  else if (strcmp(cmd0, "add"))
+  else if (strcmp(cmd0, "add") == 0)
     *kind = ZAM_Add;
-  else if (strcmp(cmd0, "eq"))
+  else if (strcmp(cmd0, "eq") == 0)
     *kind = ZAM_Eq;
-  else if (strcmp(cmd0, "app"))
+  else if (strcmp(cmd0, "app") == 0)
     *kind = ZAM_Apply;
-  else if (strcmp(cmd0, "tapp"))
+  else if (strcmp(cmd0, "tapp") == 0)
     *kind = ZAM_TailApply;
-  else if (strcmp(cmd0, "mark"))
+  else if (strcmp(cmd0, "mark") == 0)
     *kind = ZAM_PushMark;
-  else if (strcmp(cmd0, "grab"))
+  else if (strcmp(cmd0, "grab") == 0)
     *kind = ZAM_Grab;
-  else if (strcmp(cmd0, "ret"))
+  else if (strcmp(cmd0, "ret") == 0)
     *kind = ZAM_Return;
-  else if (strcmp(cmd0, "halt"))
+  else if (strcmp(cmd0, "halt") == 0)
     *kind = ZAM_Halt;
   else
     REPORT(errno, node, "Internal error: <%s> is not a <cmd0>", cmd0);
@@ -120,7 +128,7 @@ void parse_tree_read_cmd1(char* source, TSNode cmd1, ZAM_instr_t* ptr_instr, int
       instr.const_bool = true;
     } else if (strcmp(buffer, "false") == 0) {
       instr.kind = ZAM_Ldb;
-      instr.const_bool = true;
+      instr.const_bool = false;
     } else {
       int value = 0;
       int count = sscanf(buffer, "%d", &value);
@@ -145,8 +153,8 @@ void parse_tree_read_cmd1(char* source, TSNode cmd1, ZAM_instr_t* ptr_instr, int
       REPORT(errno, cmd1, "Cannot load [%s] (only support bool and naturals)",
 	     buffer);
     }
-    instr.kind = ZAM_Ldi;
-    instr.const_int = value;
+    instr.kind = ZAM_Access;
+    instr.access = value;
     *ptr_instr = instr;
     SUCCESS(errno);
   } else {
@@ -195,9 +203,11 @@ void parse_tree_read_block(char *source, TSNode block_node,
     char cmd0_buffer[AVM_CMD0_SIZE] = {};
     parse_tree_read_text(source, cmd_node, cmd0_buffer, AVM_CMD0_SIZE, errno);
     GUARD(errno);
-    ZAM_instr_t instr = {};
-    parse_tree_read_cmd0(cmd0_buffer, cmd_node, &(instr.kind), errno);
+    ZAM_instr_kind k = ZAM_Halt;
+    parse_tree_read_cmd0(cmd0_buffer, cmd_node, &k, errno);
     GUARD(errno);
+    ZAM_instr_t instr = {};
+    instr.kind = k;
     array_push(instr_buffer, instr);
     SUCCESS(errno);
   } else if (strcmp(ts_node_type(cmd_node), "cmd1") == 0) {
@@ -271,7 +281,8 @@ void parse_tree(char *source, TSTree *tree, ZAM_code_t** code, int *errno) {
     *code = malloc(sizeof(ZAM_code_t));
     (*code)->instr_size = instr_buffer->size;
     ZAM_instr_t *instrs = malloc(sizeof(ZAM_instr_t) * (*code)->instr_size);
-    memcpy(instrs, instr_buffer->contents, (*code)->instr_size);
+    memcpy(instrs, instr_buffer->contents,
+           (*code)->instr_size * sizeof(ZAM_instr_t));
     (*code)->instr = instrs;
     goto clean;
   }

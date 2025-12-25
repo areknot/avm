@@ -31,6 +31,9 @@ tests/%.o: tests/%.c
 test: $(TEST_TARGET)
 	./$(TEST_TARGET)
 
+avm-echo: $(CORE_OBJS) ./tests/avm-echo/main.c
+	$(CC) $(CFLAGS) -I./src $^ -o avm-echo
+
 tree-sitter-avm: src/tree-sitter-avm/grammar.js
 	cd src/tree-sitter-avm; tree-sitter generate
 
@@ -41,6 +44,6 @@ tree-sitter-avm: src/tree-sitter-avm/grammar.js
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 clean:
-	rm -f $(TARGET) $(TEST_TARGET) $(OBJS) $(TEST_OBJS)
+	rm -f $(TARGET) $(TEST_TARGET) $(OBJS) $(TEST_OBJS) avm-echo
 
 .PHONY: all clean

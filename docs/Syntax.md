@@ -1,5 +1,4 @@
 
-
 # Syntax
 
 ## Syntax of the bytecode
@@ -35,3 +34,24 @@ and `<cmd/1>` takes one of the following forms,
 
 where `ℒ` denotes the set of characters excluding `:`, `;` and spaces.
 Comments are followed by `#` and ended by a newline.
+
+## Usage of the parser
+
+The interfaces of the parser for AVM are in header `src/avm_parser.h`
+and implement is in `src/avm_parser.c`. The parsing is accomplished by
+a function
+
+	ZAM_code_t *parse(char *source, int size);
+
+which takes the source code represented by a string (`source`) and its
+lengths (`size`) and returns the result of parsing
+(`ZAM_code_t*`). Both the pointer `ZAM_code_t*` and the `instr` field
+inside it are allocated from heap.
+
+The resulted pointer gets `NULL` if the parsing fails, due to syntax
+error, backpatch error, or any other errors at runtime. The reason of
+failure is detailed by a data structure `AVM_parse_error` in
+`avm_parser.h`. The `message` field contains a text message describing
+the error, and other fields are for locating the error. One can retrieve 
+the error object by calling `AVM_parse_error* last_parse_error()` 
+immediately after the failure of parsing.
