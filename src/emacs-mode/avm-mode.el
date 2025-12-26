@@ -31,7 +31,7 @@
 (defvar avm-mode-default-indent 4)
 
 (defconst avm-mode--line-type-0
-  "^\\([a-zA-Z_][a-zA-Z0-9_]*[[:blank:]]*:[[:blank:]]*\\)[^[:blank:]]"
+  "^[[:blank:]]*\\([a-zA-Z_][a-zA-Z0-9_]*[[:blank:]]*:[[:blank:]]*\\)[^[:blank:]]"
   "label : instr")
 
 (defconst avm-mode--line-type-1
