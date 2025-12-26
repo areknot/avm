@@ -20,15 +20,16 @@ export default grammar({
 	  'tapp' , 'mark'   , 'grab' , 'ret' , 'halt'
       ),
       cmd1: $ => choice($.load, $.acc, $.b, $.bf, $.clos),
-      load: $ => seq('load', choice($.nat, $.bool)),
+      load: $ => seq('load', choice($.integer, $.bool)),
       acc: $ => seq('acc', $.nat),
       b: $ => seq('b', $.lab),
       bf: $ => seq('bf', $.lab),
       clos: $ => seq('clos', $.lab),
       nat: $ => choice(/[1-9][0-9]*/, '0'),
+      integer: $ => choice(/-?[1-9][0-9]*/, '0'),
       bool: $ => choice('true', 'false'),
       lab: $ => /[^:; \t\r\n]+/,
-      comment: $ => token(seq("#", /.*/)),
+      comment: $ => token(seq('#', /.*/)),
   },
     extras: $ => [/\s/, ';', $.comment]
 });

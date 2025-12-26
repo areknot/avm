@@ -154,6 +154,11 @@
     }
   },
   {
+    "type": "integer",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "load",
     "named": true,
     "fields": {},
@@ -166,7 +171,7 @@
           "named": true
         },
         {
-          "type": "nat",
+          "type": "integer",
           "named": true
         }
       ]

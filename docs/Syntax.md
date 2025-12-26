@@ -21,7 +21,7 @@ where `<cmd/0>` is one of the following words,
 	
 and `<cmd/1>` takes one of the following forms,
 
-	<cmd/1> ::= load <nat>
+	<cmd/1> ::= load <int>
 	          | load <bool>
 			  | acc  <nat>
 	          | b    <lab> { unconditional jump }
@@ -30,10 +30,14 @@ and `<cmd/1>` takes one of the following forms,
 			  
 	<nat>  ∈ {0, 1, …}
 	<bool> ∈ {true, false}
+	<int>  ∈ {…, -2, -1, 0, 1, …}
 	<lab>  ∈ ℒ⁺
 
 where `ℒ` denotes the set of characters excluding `:`, `;` and spaces.
+Spaces cannot be put between sign (`-`) and numbers in integers.
 Comments are followed by `#` and ended by a newline.
+
+**The parser cannot handle comment properly now.**
 
 ## Usage of the parser
 
@@ -81,7 +85,7 @@ Fsum: grab
 L00:  acc 0
       acc 2
       add
-      load 1
+      load -1
       acc 2
       add
       acc 3
