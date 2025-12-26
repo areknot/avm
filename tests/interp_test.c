@@ -2,8 +2,6 @@
 #include "code.h"
 #include "interp.h"
 #include "runtime.h"
-#include "macros.h"
-
 
 
 static _Bool assert_int(ZAM_value_t *v, int expected) {
