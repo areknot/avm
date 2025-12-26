@@ -1,0 +1,25 @@
+    clos F_sum
+    let
+    mark
+    load 0
+    load 3
+    acc 0
+    app
+    endlet
+F_sum:
+    grab
+    load 0
+    acc 2
+    eq
+    bf L_00
+    acc 0
+    ret
+L_00:
+    acc 0
+    acc 2
+    add
+    load -1
+    acc 2
+    add
+    acc 3
+    tapp

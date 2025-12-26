@@ -67,27 +67,29 @@ Below is an example of the bytecode. The example is translated from
 modification.
 
 ```
-      clos Fsum
-      let
-      mark
-      load 0
-      load 3
-      acc 0
-      app
-      endlet
-Fsum: grab
-      load 0
-      acc 2
-      eq
-      bf L00
-      acc 0
-      ret
-L00:  acc 0
-      acc 2
-      add
-      load -1
-      acc 2
-      add
-      acc 3
-      tapp
+    clos F_sum
+    let
+    mark
+    load 0
+    load 3
+    acc 0
+    app
+    endlet
+F_sum:
+    grab
+    load 0
+    acc 2
+    eq
+    bf L_00
+    acc 0
+    ret
+L_00:
+    acc 0
+    acc 2
+    add
+    load -1
+    acc 2
+    add
+    acc 3
+    tapp
 ```
