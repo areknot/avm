@@ -245,79 +245,79 @@ static ZAM_code_t make_hof_program(int x, int y) {
 int main(void) {
   // Test 1: 2 + 3 => 5
   ZAM_code_t add_code = make_add_program(2, 3);
-  ZAM_value_t *add_result = run_code_with_result(&add_code);
+  ZAM_value_t *add_result = _run_code_with_result(&add_code);
   if (assert_int(add_result, 5))
     printf("Test 1 passed.\n");
 
   // Test 2: 4 == 4 => true
   ZAM_code_t eq_true_code = make_eq_program(4, 4);
-  ZAM_value_t *eq_true_result = run_code_with_result(&eq_true_code);
+  ZAM_value_t *eq_true_result = _run_code_with_result(&eq_true_code);
   if (assert_bool(eq_true_result, true))
     printf("Test 2 passed.\n");
 
   // Test 3: 4 != 5 => false
   ZAM_code_t eq_false_code = make_eq_program(4, 5);
-  ZAM_value_t *eq_false_result = run_code_with_result(&eq_false_code);
+  ZAM_value_t *eq_false_result = _run_code_with_result(&eq_false_code);
   if (assert_bool(eq_false_result, false))
     printf("Test 3 passed.\n");
 
   // Test 4: Load true => true
   ZAM_code_t ldb_true_code = make_ldb_program(true);
-  ZAM_value_t *ldb_true_result = run_code_with_result(&ldb_true_code);
+  ZAM_value_t *ldb_true_result = _run_code_with_result(&ldb_true_code);
   if (assert_bool(ldb_true_result, true))
     printf("Test 4 passed.\n");
 
   // Test 5: let x = 10 in x => 10
   ZAM_code_t let_access_code = make_let_access_program(10);
-  ZAM_value_t *let_access_result = run_code_with_result(&let_access_code);
+  ZAM_value_t *let_access_result = _run_code_with_result(&let_access_code);
   if (assert_int(let_access_result, 10))
     printf("Test 5 passed.\n");
 
   // Test 6: if true then 10 else 20 => 10
   ZAM_code_t if_true_code = make_if_program(true, 10, 20);
-  ZAM_value_t *if_true_result = run_code_with_result(&if_true_code);
+  ZAM_value_t *if_true_result = _run_code_with_result(&if_true_code);
   if (assert_int(if_true_result, 10))
     printf("Test 6 passed.\n");
 
   // Test 7: if false then 10 else 20 => 20
   ZAM_code_t if_false_code = make_if_program(false, 10, 20);
-  ZAM_value_t *if_false_result = run_code_with_result(&if_false_code);
+  ZAM_value_t *if_false_result = _run_code_with_result(&if_false_code);
   if (assert_int(if_false_result, 20))
     printf("Test 7 passed.\n");
 
   // Test 8: (fun x -> x) 7 => 7
   ZAM_code_t id_apply_code = make_id_apply_program(7);
-  ZAM_value_t *id_apply_result = run_code_with_result(&id_apply_code);
+  ZAM_value_t *id_apply_result = _run_code_with_result(&id_apply_code);
   if (assert_int(id_apply_result, 7))
     printf("Test 8 passed.\n");
 
   // Test 9: (fun x -> 123) 7 => 123
   ZAM_code_t const_apply_code = make_const_apply_program(7, 123);
-  ZAM_value_t *const_apply_result = run_code_with_result(&const_apply_code);
+  ZAM_value_t *const_apply_result = _run_code_with_result(&const_apply_code);
   if (assert_int(const_apply_result, 123))
     printf("Test 9 passed.\n");
 
   // Test 10: (fun x -> fun y -> x + y) 10 1 => 11
   ZAM_code_t add2_full_code = make_add2_full_program(10, 1);
-  ZAM_value_t *add2_full_result = run_code_with_result(&add2_full_code);
+  ZAM_value_t *add2_full_result = _run_code_with_result(&add2_full_code);
   if (assert_int(add2_full_result, 11))
     printf("Test 10 passed.\n");
 
   // Test 11: let f = (fun x -> fun y -> x + y) 100 in f 10 => 110
   ZAM_code_t add2_partial_code = make_add2_partial_program(100, 10);
-  ZAM_value_t *add2_partial_result = run_code_with_result(&add2_partial_code);
+  ZAM_value_t *add2_partial_result = _run_code_with_result(&add2_partial_code);
   if (assert_int(add2_partial_result, 110))
     printf("Test 11 passed.\n");
 
   // Test 12: (fun x -> (fun y -> 1 + y) x) 10 => 11
   ZAM_code_t tailapply_code = make_tailapply_program(10);
-  ZAM_value_t *tailapply_result = run_code_with_result(&tailapply_code);
+  ZAM_value_t *tailapply_result = _run_code_with_result(&tailapply_code);
   if (assert_int(tailapply_result, 11))
     printf("Test 12 passed.\n");
 
   // Test 13: (fun f -> fun x -> f x) (fun x -> fun y -> x + y) 1000 100
   ZAM_code_t hof_code = make_hof_program(1000, 100);
-  ZAM_value_t *hof_result = run_code_with_result(&hof_code);
+  ZAM_value_t *hof_result = _run_code_with_result(&hof_code);
   if (assert_int(hof_result, 1100))
     printf("Test 13 passed.\n");
 

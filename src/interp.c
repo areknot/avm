@@ -6,25 +6,33 @@
 
 ZAM_code_t *code;
 int pc;
-int len;
 ZAM_stack_t *astack;
 ZAM_stack_t *rstack;
 ZAM_env_t *env;
+ZAM_value_t epsilon = { .kind = ZAM_Epsilon };
 
+ZAM_value_t *new_int(int i);
+ZAM_value_t *new_bool(_Bool b);
+ZAM_value_t *new_clos(int l, ZAM_env_t *env);
 ZAM_value_t *run();
 
-
-void run_code(ZAM_code_t *src) {
-  // Initialization.
+void init_avm(ZAM_code_t *src, _Bool ignite) {
   code = src;
   pc = 0;
   astack = NULL;
   rstack = NULL;
   env = NULL;
 
-  if (code == NULL) return;
+  if (ignite) {
+    push(&astack, &epsilon);
+    push(&rstack, new_clos(src->instr_size, NULL));
+  }
+}
 
-  len = code->instr_size;
+void _run_code(ZAM_code_t *src) {
+  init_avm(src, false);
+
+  if (code == NULL) return;
 
   ZAM_value_t *res = run();
 
@@ -32,27 +40,13 @@ void run_code(ZAM_code_t *src) {
   print_value(res);
 }
 
-ZAM_value_t *run_code_with_result(ZAM_code_t *src) {
-  // Initialization.
-  code = src;
-  pc = 0;
-  astack = NULL;
-  rstack = NULL;
-  env = NULL;
+ZAM_value_t *_run_code_with_result(ZAM_code_t *src) {
+  init_avm(src, false);
 
   if (code == NULL) return NULL;
 
-  len = code->instr_size;
-
   return run();
 }
-
-ZAM_value_t epsilon = { .kind = ZAM_Epsilon };
-
-ZAM_value_t *new_int(int i);
-ZAM_value_t *new_bool(_Bool b);
-ZAM_value_t *new_clos(int l, ZAM_env_t *env);
-
 
 // Custom error report function.
 // Takes an error message in the same format as printf.
