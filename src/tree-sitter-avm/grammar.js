@@ -28,7 +28,7 @@ export default grammar({
       nat: $ => choice(/[1-9][0-9]*/, '0'),
       integer: $ => choice(/-?[1-9][0-9]*/, '0'),
       bool: $ => choice('true', 'false'),
-      lab: $ => /[^:; \t\r\n]+/,
+      lab: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
       comment: $ => token(seq('#', /.*/)),
   },
     extras: $ => [/\s/, ';', $.comment]

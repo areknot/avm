@@ -31,11 +31,11 @@ and `<cmd/1>` takes one of the following forms,
 	<nat>  ∈ {0, 1, …}
 	<bool> ∈ {true, false}
 	<int>  ∈ {…, -2, -1, 0, 1, …}
-	<lab>  ∈ ℒ⁺
+	<lab>  ∈ ℒ
 
-where `ℒ` denotes the set of characters excluding `:`, `;` and spaces.
-Spaces cannot be put between sign (`-`) and numbers in integers.
-Comments are followed by `#` and ended by a newline.
+where `ℒ` denotes the set of words (`[a-zA-Z_][a-zA-Z0-9_]*`). Spaces
+cannot be put between sign (`-`) and numbers in integers.  Comments
+are followed by `#` and ended by a newline.
 
 **The parser cannot handle comment properly now.**
 
