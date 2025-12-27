@@ -6,6 +6,7 @@ CFLAGS = -std=gnu11 -Wall -Wextra $(INCLUDES)
 SRCS = $(wildcard ./src/*.c)              \
        ./src/tree-sitter-avm/src/parser.c \
        ./third_party/tree-sitter/src/lib.c
+HEADERS = $(wildcard ./src/*.h)
 OBJS = $(SRCS:.c=.o)
 CORE_OBJS = $(filter-out ./src/main.o,$(OBJS))
 TARGET = avm
@@ -22,7 +23,7 @@ $(TARGET): $(OBJS)
 $(TEST_TARGET): $(CORE_OBJS) $(TEST_OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 
-src/%.o: src/%.c
+src/%.o: src/%.c $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 tests/%.o: tests/%.c
