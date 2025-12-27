@@ -32,10 +32,11 @@ struct ZAM_stack_node {
   struct ZAM_stack_node* next;
 };
 
-ZAM_value_t* pop(ZAM_stack_t** stp);
+ZAM_value_t* _pop(ZAM_stack_t** stp, const char* name);
+_Bool _push(ZAM_stack_t** stp, ZAM_value_t* val, const char* name);
 
-_Bool push(ZAM_stack_t** stp, ZAM_value_t* val);
-
+#define pop(stp) _pop(stp, #stp)
+#define push(stp, val) _push(stp, val, #stp)
 
 struct ZAM_env_node {
   ZAM_value_t* val;

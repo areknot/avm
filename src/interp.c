@@ -1,5 +1,5 @@
-#include "code.h"
-#include "runtime.h"
+#include "interp.h"
+#include "debug.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,6 +38,7 @@ void _run_code(ZAM_code_t *src) {
 
   printf("Result: ");
   print_value(res);
+  printf("\n");
 }
 
 ZAM_value_t *_run_code_with_result(ZAM_code_t *src) {
@@ -60,6 +61,11 @@ void error(char *fmt, ... ) {
 
 ZAM_value_t *run() {
   while (true) {
+#ifdef DEBUG_TRACE_EXECUTION
+    printf("\n");
+    disassemble_instruction(code, pc);
+#endif
+
     ZAM_instr_t *instr = code->instr + pc;
     pc++;
 

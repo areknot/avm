@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
 
   printf("Result: ");
   print_value(res);
+  printf("\n");
 
   return 0;
 }
