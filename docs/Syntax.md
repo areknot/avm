@@ -67,14 +67,17 @@ Below is an example of the bytecode. The example is translated from
 modification.
 
 ```
+main:
     clos F_sum
     let
     mark
     load 0
-    load 3
+    load 10
     acc 0
     app
     endlet
+    ret
+    
 F_sum:
     grab
     load 0
@@ -83,6 +86,7 @@ F_sum:
     bf L_00
     acc 0
     ret
+    
 L_00:
     acc 0
     acc 2
