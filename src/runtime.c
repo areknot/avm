@@ -4,15 +4,15 @@
 #include <stdio.h>
 
 // TODO: Add better error handling
-void print_stack(ZAM_stack_t *st);
-void print_env(ZAM_env_t *env);
+void print_stack(AVM_stack_t *st);
+void print_env(AVM_env_t *env);
 
-ZAM_value_t* _pop(ZAM_stack_t** stp, const char* name) {
+AVM_value_t* _pop(AVM_stack_t** stp, const char* name) {
   (void)name;
   if (stp == NULL || *stp == NULL) return NULL;
 
-  ZAM_stack_t* st = *stp;
-  ZAM_value_t* val = st->val;
+  AVM_stack_t* st = *stp;
+  AVM_value_t* val = st->val;
 
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Popped from %s:\n  ", name);
@@ -27,10 +27,10 @@ ZAM_value_t* _pop(ZAM_stack_t** stp, const char* name) {
   return val;
 }
 
-_Bool _push(ZAM_stack_t** stp, ZAM_value_t* val, const char* name) {
+_Bool _push(AVM_stack_t** stp, AVM_value_t* val, const char* name) {
   (void)name;
-  ZAM_stack_t* node = NULL;
-  node = malloc(sizeof(ZAM_stack_t));
+  AVM_stack_t* node = NULL;
+  node = malloc(sizeof(AVM_stack_t));
 
   if (!node) return false;
 
@@ -48,9 +48,9 @@ _Bool _push(ZAM_stack_t** stp, ZAM_value_t* val, const char* name) {
   return true;
 }
 
-ZAM_env_t* extend(ZAM_env_t *env, ZAM_value_t *val) {
-  ZAM_env_t *node = NULL;
-  node = malloc(sizeof(ZAM_env_t));
+AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val) {
+  AVM_env_t *node = NULL;
+  node = malloc(sizeof(AVM_env_t));
 
   if (!node) return NULL; // Returns NULL if malloc failed.
 
@@ -67,7 +67,7 @@ ZAM_env_t* extend(ZAM_env_t *env, ZAM_value_t *val) {
   return node;
 }
 
-ZAM_value_t* lookup(ZAM_env_t *env, int index) {
+AVM_value_t* lookup(AVM_env_t *env, int index) {
   int i = 0;
 
   while (env != NULL) {
@@ -90,38 +90,38 @@ ZAM_value_t* lookup(ZAM_env_t *env, int index) {
   return NULL;
 }
 
-void print_value(ZAM_value_t *val) {
+void print_value(AVM_value_t *val) {
   switch (val->kind) {
-  case ZAM_IntVal:
+  case AVM_IntVal:
     printf("%d", val->int_value);
     break;
 
-  case ZAM_BoolVal:
+  case AVM_BoolVal:
     printf("%s", val->bool_value ? "true" : "false");
     break;
 
-  case ZAM_ClosVal:
+  case AVM_ClosVal:
     printf("<clos(%d)>", val->addr);
     break;
 
-  case ZAM_Epsilon:
+  case AVM_Epsilon:
     printf("<mark>");
     break;
   }
 }
 
-void print_stack(ZAM_stack_t *st) {
+void print_stack(AVM_stack_t *st) {
   printf("[");
-  for (ZAM_stack_t *p = st; p != NULL; p = p->next) {
+  for (AVM_stack_t *p = st; p != NULL; p = p->next) {
     printf(" ");
     print_value(p->val);
   }
   printf(" ]");
 }
 
-void print_env(ZAM_env_t *env) {
+void print_env(AVM_env_t *env) {
   printf("[");
-  for (ZAM_env_t *p = env; p != NULL; p = p->next) {
+  for (AVM_env_t *p = env; p != NULL; p = p->next) {
     printf(" ");
     print_value(p->val);
   }

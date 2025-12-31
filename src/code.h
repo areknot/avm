@@ -3,51 +3,51 @@
 #include <stdbool.h>
 
 typedef enum {
-  ZAM_Ldi      , ZAM_Ldb   , ZAM_Access    ,
-  ZAM_Closure  , ZAM_Let   , ZAM_EndLet    ,
-  ZAM_Jump     , ZAM_CJump , ZAM_Add       ,
-  ZAM_Eq       , ZAM_Apply , ZAM_TailApply ,
-  ZAM_PushMark , ZAM_Grab  , ZAM_Return    ,
-  ZAM_Halt
-} ZAM_instr_kind;
+  AVM_Ldi      , AVM_Ldb   , AVM_Access    ,
+  AVM_Closure  , AVM_Let   , AVM_EndLet    ,
+  AVM_Jump     , AVM_CJump , AVM_Add       ,
+  AVM_Eq       , AVM_Apply , AVM_TailApply ,
+  AVM_PushMark , AVM_Grab  , AVM_Return    ,
+  AVM_Halt
+} AVM_instr_kind;
 
-struct ZAM_instr;
-struct ZAM_code;
+struct AVM_instr;
+struct AVM_code;
 
-typedef struct ZAM_instr {
-  ZAM_instr_kind   kind;
+typedef struct AVM_instr {
+  AVM_instr_kind   kind;
   int              const_int;
   _Bool            const_bool;
   int              access;
   int              addr; // for Closure and Jumps
   void*            payload;
-} ZAM_instr_t;
+} AVM_instr_t;
 
-typedef struct ZAM_code {
-  ZAM_instr_t* instr;
+typedef struct AVM_code {
+  AVM_instr_t* instr;
   int          instr_size;
-} ZAM_code_t;
+} AVM_code_t;
 
-#define HALT()      ((ZAM_instr_t){ .kind = ZAM_Halt })
-#define LDI(n)      ((ZAM_instr_t){ .kind = ZAM_Ldi,     .const_int  = (n) })
-#define LDB(b)      ((ZAM_instr_t){ .kind = ZAM_Ldb,     .const_bool = (b) })
-#define ACCESS(i)      ((ZAM_instr_t){ .kind = ZAM_Access,  .access     = (i) })
+#define HALT()      ((AVM_instr_t){ .kind = AVM_Halt })
+#define LDI(n)      ((AVM_instr_t){ .kind = AVM_Ldi,     .const_int  = (n) })
+#define LDB(b)      ((AVM_instr_t){ .kind = AVM_Ldb,     .const_bool = (b) })
+#define ACCESS(i)   ((AVM_instr_t){ .kind = AVM_Access,  .access     = (i) })
 
-#define ADD()       ((ZAM_instr_t){ .kind = ZAM_Add })
-#define EQ()        ((ZAM_instr_t){ .kind = ZAM_Eq })
+#define ADD()       ((AVM_instr_t){ .kind = AVM_Add })
+#define EQ()        ((AVM_instr_t){ .kind = AVM_Eq })
 
-#define LET()       ((ZAM_instr_t){ .kind = ZAM_Let })
-#define ENDLET()    ((ZAM_instr_t){ .kind = ZAM_EndLet })
+#define LET()       ((AVM_instr_t){ .kind = AVM_Let })
+#define ENDLET()    ((AVM_instr_t){ .kind = AVM_EndLet })
 
-#define PUSHMARK()  ((ZAM_instr_t){ .kind = ZAM_PushMark })
-#define GRAB()      ((ZAM_instr_t){ .kind = ZAM_Grab })
+#define PUSHMARK()  ((AVM_instr_t){ .kind = AVM_PushMark })
+#define GRAB()      ((AVM_instr_t){ .kind = AVM_Grab })
 
-#define CLOSURE(a)  ((ZAM_instr_t){ .kind = ZAM_Closure, .addr = (a) })
-#define APPLY()     ((ZAM_instr_t){ .kind = ZAM_Apply })
-#define TAILAPPLY() ((ZAM_instr_t){ .kind = ZAM_TailApply })
-#define RETURN()    ((ZAM_instr_t){ .kind = ZAM_Return })
+#define CLOSURE(a)  ((AVM_instr_t){ .kind = AVM_Closure, .addr = (a) })
+#define APPLY()     ((AVM_instr_t){ .kind = AVM_Apply })
+#define TAILAPPLY() ((AVM_instr_t){ .kind = AVM_TailApply })
+#define RETURN()    ((AVM_instr_t){ .kind = AVM_Return })
 
-#define JUMP(a)     ((ZAM_instr_t){ .kind = ZAM_Jump,  .addr = (a) })
-#define CJUMP(a)    ((ZAM_instr_t){ .kind = ZAM_CJump, .addr = (a) })
+#define JUMP(a)     ((AVM_instr_t){ .kind = AVM_Jump,  .addr = (a) })
+#define CJUMP(a)    ((AVM_instr_t){ .kind = AVM_CJump, .addr = (a) })
 
-#define CODE_OF(arr) ((ZAM_code_t){ .instr = (arr), .instr_size = (int)(sizeof(arr)/sizeof((arr)[0]))})
+#define CODE_OF(arr) ((AVM_code_t){ .instr = (arr), .instr_size = (int)(sizeof(arr)/sizeof((arr)[0]))})

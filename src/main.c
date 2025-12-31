@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  ZAM_code_t *code = parse(buf, size);
+  AVM_code_t *code = parse(buf, size);
 
   if (code == NULL) {
     AVM_parse_error *e = last_parse_error();
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  ZAM_code_t *tmp = realloc(code, (code->instr_size + 10) * sizeof(ZAM_code_t));
+  AVM_code_t *tmp = realloc(code, (code->instr_size + 10) * sizeof(AVM_code_t));
 
   if (tmp == NULL) {
     fprintf(stderr, "Failed to load file\n");
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   code->instr[code->instr_size] = HALT();
 
   init_avm(code, true);
-  ZAM_value_t *res = run();
+  AVM_value_t *res = run();
 
   printf("Result: ");
   print_value(res);

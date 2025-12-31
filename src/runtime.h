@@ -2,49 +2,49 @@
 
 #include <stdbool.h>
 
-struct ZAM_code;
-typedef struct ZAM_code ZAM_code_t;
+struct AVM_code;
+typedef struct AVM_code AVM_code_t;
 
-typedef struct ZAM_value_node ZAM_value_t;
-typedef struct ZAM_stack_node ZAM_stack_t;
-typedef struct ZAM_env_node ZAM_env_t;
+typedef struct AVM_value_node AVM_value_t;
+typedef struct AVM_stack_node AVM_stack_t;
+typedef struct AVM_env_node AVM_env_t;
 
 // Value type
 typedef enum {
-    ZAM_IntVal,
-    ZAM_BoolVal,
-    ZAM_ClosVal,
-    ZAM_Epsilon
-} ZAM_value_kind;
+    AVM_IntVal,
+    AVM_BoolVal,
+    AVM_ClosVal,
+    AVM_Epsilon
+} AVM_value_kind;
 
 
-struct ZAM_value_node {
-  ZAM_value_kind kind;
+struct AVM_value_node {
+  AVM_value_kind kind;
   int int_value;
   _Bool bool_value;
   int addr;
-  ZAM_env_t* env;
+  AVM_env_t* env;
 };
 
 
-struct ZAM_stack_node {
-  ZAM_value_t* val;
-  struct ZAM_stack_node* next;
+struct AVM_stack_node {
+  AVM_value_t* val;
+  struct AVM_stack_node* next;
 };
 
-ZAM_value_t* _pop(ZAM_stack_t** stp, const char* name);
-_Bool _push(ZAM_stack_t** stp, ZAM_value_t* val, const char* name);
+AVM_value_t* _pop(AVM_stack_t** stp, const char* name);
+_Bool _push(AVM_stack_t** stp, AVM_value_t* val, const char* name);
 
 #define pop(stp) _pop(stp, #stp)
 #define push(stp, val) _push(stp, val, #stp)
 
-struct ZAM_env_node {
-  ZAM_value_t* val;
-  struct ZAM_env_node* next;
+struct AVM_env_node {
+  AVM_value_t* val;
+  struct AVM_env_node* next;
 };
 
-ZAM_env_t* extend(ZAM_env_t *env, ZAM_value_t *val);
+AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val);
 
-ZAM_value_t* lookup(ZAM_env_t *env, int index);
+AVM_value_t* lookup(AVM_env_t *env, int index);
 
-void print_value(ZAM_value_t*);
+void print_value(AVM_value_t*);

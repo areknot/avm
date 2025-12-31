@@ -1,56 +1,56 @@
 #include "debug.h"
 #include <stdio.h>
 
-void disassemble_instruction(ZAM_code_t *code, int pc) {
+void disassemble_instruction(AVM_code_t *code, int pc) {
   printf("%03d | ", pc);
-  ZAM_instr_t *instr = &code->instr[pc];
+  AVM_instr_t *instr = &code->instr[pc];
   switch (instr->kind) {
-  case ZAM_Ldi:
+  case AVM_Ldi:
     printf("load %d", instr->const_int);
     break;
-  case ZAM_Ldb:
+  case AVM_Ldb:
     printf("load %s", (instr->const_bool ? "true" : "false"));
     break;
-  case ZAM_Access:
+  case AVM_Access:
     printf("acc  %d", instr->access);
     break;
-  case ZAM_Closure:
+  case AVM_Closure:
     printf("clos %d", instr->addr);
     break;
-  case ZAM_Let:
+  case AVM_Let:
     printf("let");
     break;
-  case ZAM_EndLet:
+  case AVM_EndLet:
     printf("endlet");
     break;
-  case ZAM_Jump:
+  case AVM_Jump:
     printf("b    %d", instr->addr);
     break;
-  case ZAM_CJump:
+  case AVM_CJump:
     printf("bf   %d", instr->addr);
     break;
-  case ZAM_Add:
+  case AVM_Add:
     printf("add");
     break;
-  case ZAM_Eq:
+  case AVM_Eq:
     printf("eq");
     break;
-  case ZAM_Apply:
+  case AVM_Apply:
     printf("app");
     break;
-  case ZAM_TailApply:
+  case AVM_TailApply:
     printf("tapp");
     break;
-  case ZAM_PushMark:
+  case AVM_PushMark:
     printf("mark");
     break;
-  case ZAM_Grab:
+  case AVM_Grab:
     printf("grab");
     break;
-  case ZAM_Return:
+  case AVM_Return:
     printf("ret");
     break;
-  case ZAM_Halt:
+  case AVM_Halt:
     printf("halt");
     break;
   }

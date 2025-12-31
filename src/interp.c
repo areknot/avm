@@ -4,19 +4,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-ZAM_code_t *code;
+AVM_code_t *code;
 int pc;
-ZAM_stack_t *astack;
-ZAM_stack_t *rstack;
-ZAM_env_t *env;
-ZAM_value_t epsilon = { .kind = ZAM_Epsilon };
+AVM_stack_t *astack;
+AVM_stack_t *rstack;
+AVM_env_t *env;
+AVM_value_t epsilon = { .kind = AVM_Epsilon };
 
-ZAM_value_t *new_int(int i);
-ZAM_value_t *new_bool(_Bool b);
-ZAM_value_t *new_clos(int l, ZAM_env_t *env);
-ZAM_value_t *run();
+AVM_value_t *new_int(int i);
+AVM_value_t *new_bool(_Bool b);
+AVM_value_t *new_clos(int l, AVM_env_t *env);
+AVM_value_t *run();
 
-void init_avm(ZAM_code_t *src, _Bool ignite) {
+void init_avm(AVM_code_t *src, _Bool ignite) {
   code = src;
   pc = 0;
   astack = NULL;
@@ -29,19 +29,19 @@ void init_avm(ZAM_code_t *src, _Bool ignite) {
   }
 }
 
-void _run_code(ZAM_code_t *src) {
+void _run_code(AVM_code_t *src) {
   init_avm(src, false);
 
   if (code == NULL) return;
 
-  ZAM_value_t *res = run();
+  AVM_value_t *res = run();
 
   printf("Result: ");
   print_value(res);
   printf("\n");
 }
 
-ZAM_value_t *_run_code_with_result(ZAM_code_t *src) {
+AVM_value_t *_run_code_with_result(AVM_code_t *src) {
   init_avm(src, false);
 
   if (code == NULL) return NULL;
@@ -59,84 +59,84 @@ void error(char *fmt, ... ) {
     exit(1);
 }
 
-ZAM_value_t *run() {
+AVM_value_t *run() {
   while (true) {
 #ifdef DEBUG_TRACE_EXECUTION
     printf("\n");
     disassemble_instruction(code, pc);
 #endif
 
-    ZAM_instr_t *instr = code->instr + pc;
+    AVM_instr_t *instr = code->instr + pc;
     pc++;
 
     switch (instr->kind) {
-    case ZAM_Ldi:
+    case AVM_Ldi:
       push(&astack, new_int(instr->const_int));
       break;
 
-    case ZAM_Ldb:
+    case AVM_Ldb:
       push(&astack, new_bool(instr->const_bool));
       break;
 
-    case ZAM_Access:
+    case AVM_Access:
       push(&astack, lookup(env, instr->access));
       break;
 
-    case ZAM_Closure:
+    case AVM_Closure:
       push(&astack, new_clos(instr->addr, env));
       break;
 
-    case ZAM_Let:
+    case AVM_Let:
       env = extend(env, pop(&astack));
       break;
 
-    case ZAM_EndLet:
+    case AVM_EndLet:
       env = env->next;
       break;
 
-    case ZAM_Jump:
+    case AVM_Jump:
       pc = instr->addr;
       break;
 
-    case ZAM_CJump: {
-      ZAM_value_t *val = pop(&astack);
-      if (val->kind == ZAM_BoolVal && !(val->bool_value)) {
+    case AVM_CJump: {
+      AVM_value_t *val = pop(&astack);
+      if (val->kind == AVM_BoolVal && !(val->bool_value)) {
         pc = instr->addr;
       }
       break;
     }
 
-    case ZAM_Add: {
-      ZAM_value_t *val1 = pop(&astack);
-      ZAM_value_t *val2 = pop(&astack);
+    case AVM_Add: {
+      AVM_value_t *val1 = pop(&astack);
+      AVM_value_t *val2 = pop(&astack);
 
-      if (val1->kind != ZAM_IntVal || val2->kind != ZAM_IntVal) {
-        error("ZAM_Add: Expected two integer values.");
+      if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
+        error("AVM_Add: Expected two integer values.");
       }
 
       push(&astack, new_int(val1->int_value + val2->int_value));
       break;
     }
 
-    case ZAM_Eq: {
-      ZAM_value_t *val1 = pop(&astack);
-      ZAM_value_t *val2 = pop(&astack);
+    case AVM_Eq: {
+      AVM_value_t *val1 = pop(&astack);
+      AVM_value_t *val2 = pop(&astack);
 
-      if (val1->kind != ZAM_IntVal || val2->kind != ZAM_IntVal) {
-        error("ZAM_Eq: Expected two integer values.");
+      if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
+        error("AVM_Eq: Expected two integer values.");
       }
 
       push(&astack, new_bool(val1->int_value == val2->int_value));
       break;
     }
 
-    case ZAM_Apply: {
+    case AVM_Apply: {
       // Pop a function and an argument from astack.
-      ZAM_value_t *func = pop(&astack);
-      ZAM_value_t *arg = pop(&astack);
+      AVM_value_t *func = pop(&astack);
+      AVM_value_t *arg = pop(&astack);
 
-      if (func->kind != ZAM_ClosVal) {
-        error("ZAM_Apply: Expected function application.");
+      if (func->kind != AVM_ClosVal) {
+        error("AVM_Apply: Expected function application.");
       }
 
       // Push the current address and the environment to rstack.
@@ -149,13 +149,13 @@ ZAM_value_t *run() {
       break;
     }
 
-    case ZAM_TailApply: {
+    case AVM_TailApply: {
       // Pop a function and an argument from astack.
-      ZAM_value_t *func = pop(&astack);
-      ZAM_value_t *arg = pop(&astack);
+      AVM_value_t *func = pop(&astack);
+      AVM_value_t *arg = pop(&astack);
 
-      if (func->kind != ZAM_ClosVal) {
-        error("ZAM_Apply: Expected function application.");
+      if (func->kind != AVM_ClosVal) {
+        error("AVM_Apply: Expected function application.");
       }
 
       // Extend the environment.
@@ -166,17 +166,17 @@ ZAM_value_t *run() {
       break;
     }
 
-    case ZAM_PushMark:
+    case AVM_PushMark:
       push(&astack, &epsilon);
       break;
 
-    case ZAM_Grab: {
+    case AVM_Grab: {
       // Pop an argument.
-      ZAM_value_t *arg = pop(&astack);
+      AVM_value_t *arg = pop(&astack);
 
-      if (arg->kind == ZAM_Epsilon) {
+      if (arg->kind == AVM_Epsilon) {
         // Get the caller's address.
-        ZAM_value_t *ret_addr = pop(&rstack);
+        AVM_value_t *ret_addr = pop(&rstack);
 
         // Push the current address to astack.
         push(&astack, new_clos(pc, env));
@@ -191,14 +191,14 @@ ZAM_value_t *run() {
       break;
     }
 
-    case ZAM_Return: {
+    case AVM_Return: {
       // Pop two arguments.
-      ZAM_value_t *arg1 = pop(&astack);
-      ZAM_value_t *arg2 = pop(&astack);
+      AVM_value_t *arg1 = pop(&astack);
+      AVM_value_t *arg2 = pop(&astack);
 
-      if (arg2->kind == ZAM_Epsilon) {
+      if (arg2->kind == AVM_Epsilon) {
         // Get the caller's address.
-        ZAM_value_t *ret_addr = pop(&rstack);
+        AVM_value_t *ret_addr = pop(&rstack);
 
         // Push the first argument to astack.
         push(&astack, arg1);
@@ -214,29 +214,29 @@ ZAM_value_t *run() {
       break;
     }
 
-    case ZAM_Halt:
+    case AVM_Halt:
       return pop(&astack);
     }
   }
 }
 
-ZAM_value_t* new_int(int i) {
-  ZAM_value_t* node = malloc(sizeof(ZAM_value_t));
-  node->kind = ZAM_IntVal;
+AVM_value_t* new_int(int i) {
+  AVM_value_t* node = malloc(sizeof(AVM_value_t));
+  node->kind = AVM_IntVal;
   node->int_value = i;
   return node;
 }
 
-ZAM_value_t *new_bool(_Bool b) {
-  ZAM_value_t* node = malloc(sizeof(ZAM_value_t));
-  node->kind = ZAM_BoolVal;
+AVM_value_t *new_bool(_Bool b) {
+  AVM_value_t* node = malloc(sizeof(AVM_value_t));
+  node->kind = AVM_BoolVal;
   node->bool_value = b;
   return node;
 }
 
-ZAM_value_t *new_clos(int l, ZAM_env_t *env) {
-  ZAM_value_t* node = malloc(sizeof(ZAM_value_t));
-  node->kind = ZAM_ClosVal;
+AVM_value_t *new_clos(int l, AVM_env_t *env) {
+  AVM_value_t* node = malloc(sizeof(AVM_value_t));
+  node->kind = AVM_ClosVal;
   node->addr = l;
   node->env = env;
   return node;

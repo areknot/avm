@@ -45,11 +45,11 @@ The interfaces of the parser for AVM are in header `src/avm_parser.h`
 and implement is in `src/avm_parser.c`. The parsing is accomplished by
 a function
 
-	ZAM_code_t *parse(char *source, int size);
+	AVM_code_t *parse(char *source, int size);
 
 which takes the source code represented by a string (`source`) and its
 lengths (`size`) and returns the result of parsing
-(`ZAM_code_t*`). Both the pointer `ZAM_code_t*` and the `instr` field
+(`AVM_code_t*`). Both the pointer `AVM_code_t*` and the `instr` field
 inside it are allocated from heap.
 
 The resulted pointer gets `NULL` if the parsing fails, due to syntax
