@@ -23,10 +23,10 @@ and `<cmd/1>` takes one of the following forms,
 
 	<cmd/1> ::= load <int>
 	          | load <bool>
-			  | acc  <nat>
+	          | acc  <nat>
 	          | b    <lab> { unconditional jump }
-			  | bf   <lab> {   jump-if-false    }
-			  | clos <lab> {      closure       }
+	          | bf   <lab> {   jump-if-false    }
+	          | clos <lab> {      closure       }
 			  
 	<nat>  ∈ {0, 1, …}
 	<bool> ∈ {true, false}
