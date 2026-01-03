@@ -16,8 +16,9 @@ Each instruction takes one of the following forms.
 
 where `<cmd/0>` is one of the following words,
 
-	<cmd/0> ∈ { let  , endlet , add  , eq  , app
-	          , tapp , mark   , grab , ret , halt }
+	<cmd/0> ∈ { let , endlet , add  , eq   , sub
+	          , le  , app    , tapp , mark , grab
+	          , ret , halt   }
 	
 and `<cmd/1>` takes one of the following forms,
 
