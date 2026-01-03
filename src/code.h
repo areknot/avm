@@ -3,12 +3,12 @@
 #include <stdbool.h>
 
 typedef enum {
-  AVM_Ldi      , AVM_Ldb   , AVM_Access    ,
-  AVM_Closure  , AVM_Let   , AVM_EndLet    ,
-  AVM_Jump     , AVM_CJump , AVM_Add       ,
-  AVM_Eq       , AVM_Apply , AVM_TailApply ,
-  AVM_PushMark , AVM_Grab  , AVM_Return    ,
-  AVM_Halt
+  AVM_Ldi     , AVM_Ldb       , AVM_Access   ,
+  AVM_Closure , AVM_Let       , AVM_EndLet   ,
+  AVM_Jump    , AVM_CJump     , AVM_Add      ,
+  AVM_Sub     , AVM_Le        , AVM_Eq       ,
+  AVM_Apply   , AVM_TailApply , AVM_PushMark ,
+  AVM_Grab    , AVM_Return    , AVM_Halt
 } AVM_instr_kind;
 
 struct AVM_instr;
@@ -34,6 +34,8 @@ typedef struct AVM_code {
 #define ACCESS(i)   ((AVM_instr_t){ .kind = AVM_Access,  .access     = (i) })
 
 #define ADD()       ((AVM_instr_t){ .kind = AVM_Add })
+#define SUB()       ((AVM_instr_t){ .kind = AVM_Sub})
+#define LE()        ((AVM_instr_t){ .kind = AVM_Le })
 #define EQ()        ((AVM_instr_t){ .kind = AVM_Eq })
 
 #define LET()       ((AVM_instr_t){ .kind = AVM_Let })

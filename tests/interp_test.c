@@ -242,6 +242,32 @@ static AVM_code_t make_hof_program(int x, int y) {
   return CODE_OF(program);
 }
 
+// x - y
+static AVM_code_t make_sub_program(int x, int y) {
+  static AVM_instr_t program[4];
+
+  // main:
+  program[0] = LDI(x);
+  program[1] = LDI(y);
+  program[2] = SUB();
+  program[3] = HALT();
+
+  return CODE_OF(program);
+}
+
+// x >= y
+static AVM_code_t make_le_program(int x, int y) {
+  static AVM_instr_t program[4];
+
+  // main:
+  program[0] = LDI(x);
+  program[1] = LDI(y);
+  program[2] = LE();
+  program[3] = HALT();
+
+  return CODE_OF(program);
+}
+
 int main(void) {
   // Test 1: 2 + 3 => 5
   AVM_code_t add_code = make_add_program(2, 3);
@@ -320,6 +346,24 @@ int main(void) {
   AVM_value_t *hof_result = _run_code_with_result(&hof_code);
   if (assert_int(hof_result, 1100))
     printf("Test 13 passed.\n");
+
+  // Test 14: 10 - 3 = 7
+  AVM_code_t sub_code = make_sub_program(10, 3);
+  AVM_value_t *sub_result = _run_code_with_result(&sub_code);
+  if (assert_int(sub_result, 7))
+    printf("Test 14 passed.\n");
+
+  // Test 15: 1 <= 3 = true
+  AVM_code_t le_true_code = make_le_program(1, 3);
+  AVM_value_t *le_true_result = _run_code_with_result(&le_true_code);
+  if (assert_bool(le_true_result, true))
+    printf("Test 15 passed.\n");
+
+  // Test 16: 10 <= 3 = false
+  AVM_code_t le_false_code = make_le_program(10, 3);
+  AVM_value_t *le_false_result = _run_code_with_result(&le_false_code);
+  if (assert_bool(le_false_result, false))
+    printf("Test 15 passed.\n");
 
   return 0;
 }

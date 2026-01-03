@@ -118,6 +118,30 @@ AVM_value_t *run() {
       break;
     }
 
+    case AVM_Sub: {
+      AVM_value_t *val1 = pop(&astack); // y
+      AVM_value_t *val2 = pop(&astack); // x
+
+      if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
+        error("AVM_Add: Expected two integer values.");
+      }
+
+      push(&astack, new_int(val2->int_value - val1->int_value)); // x - y
+      break;
+    }
+
+    case AVM_Le: {
+      AVM_value_t *val1 = pop(&astack); // y
+      AVM_value_t *val2 = pop(&astack); // x
+
+      if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
+        error("AVM_Add: Expected two integer values.");
+      }
+
+      push(&astack, new_bool(val2->int_value <= val1->int_value)); // x <= y
+      break;
+    }
+
     case AVM_Eq: {
       AVM_value_t *val1 = pop(&astack);
       AVM_value_t *val2 = pop(&astack);

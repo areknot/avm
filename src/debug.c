@@ -32,6 +32,12 @@ void disassemble_instruction(AVM_code_t *code, int pc) {
   case AVM_Add:
     printf("add");
     break;
+  case AVM_Sub:
+    printf("sub");
+    break;
+  case AVM_Le:
+    printf("le");
+    break;
   case AVM_Eq:
     printf("eq");
     break;
