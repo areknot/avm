@@ -83,7 +83,7 @@
   '("#")
   '("let" "endlet" "add" "eq" "app"
     "tapp" "mark" "grab" "ret" "halt"
-    "load" "acc" "b" "bf" "clos")
+    "load" "acc" "b" "bf" "clos" "sub" "le")
   '(("\\<true\\|false\\>" . font-lock-constant-face)
     ("\\<[a-zA-Z_][a-zA-Z0-9_]*\\>\\s-*:" . font-lock-function-name-face)
     ("\\<[a-zA-Z_][a-zA-Z0-9_]*\\>" . font-lock-variable-name-face)
