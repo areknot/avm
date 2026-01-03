@@ -260,6 +260,10 @@
     "named": true
   },
   {
+    "type": "le",
+    "named": false
+  },
+  {
     "type": "let",
     "named": false
   },
@@ -273,6 +277,10 @@
   },
   {
     "type": "ret",
+    "named": false
+  },
+  {
+    "type": "sub",
     "named": false
   },
   {

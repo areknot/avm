@@ -16,7 +16,7 @@ export default grammar({
       block: $ => seq(optional(seq($.lab, ":")), $.inst),
       inst: $ => choice($.cmd0, $.cmd1),
       cmd0: $ => choice(
-	  'let'  , 'endlet' , 'add'  , 'eq'  , 'app' ,
+	  'let'  , 'endlet' , 'add'  , 'sub', 'le', 'eq'  , 'app' ,
 	  'tapp' , 'mark'   , 'grab' , 'ret' , 'halt'
       ),
       cmd1: $ => choice($.load, $.acc, $.b, $.bf, $.clos),

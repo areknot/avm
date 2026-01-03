@@ -97,6 +97,10 @@ void parse_tree_read_cmd0(char *cmd0, TSNode node, AVM_instr_kind *kind,
     *kind = AVM_EndLet;
   else if (strcmp(cmd0, "add") == 0)
     *kind = AVM_Add;
+  else if (strcmp(cmd0, "sub") == 0)
+    *kind = AVM_Sub;
+  else if (strcmp(cmd0, "le") == 0)
+    *kind = AVM_Le;
   else if (strcmp(cmd0, "eq") == 0)
     *kind = AVM_Eq;
   else if (strcmp(cmd0, "app") == 0)
