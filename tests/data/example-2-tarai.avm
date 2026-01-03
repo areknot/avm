@@ -1,0 +1,47 @@
+main:
+    clos L_tarai
+    let
+    mark
+    load 0
+    load 7
+    load 13
+    acc 0
+    app
+    endlet
+    ret
+L_tarai:
+    grab
+    grab
+    acc 4
+    acc 2
+    le
+    bf L_else
+    acc 2
+    ret
+L_else:
+    mark
+    acc 2
+    acc 4
+    acc 0
+    load 1
+    sub
+    acc 5
+    app
+    mark
+    acc 4
+    acc 0
+    acc 2
+    load 1
+    sub
+    acc 5
+    app
+    mark
+    acc 0
+    acc 2
+    acc 4
+    load 1
+    sub
+    acc 5
+    app
+    acc 5
+    tapp
