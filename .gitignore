@@ -3,6 +3,10 @@ avm
 interp_tests
 avm-echo
 
+# LSP configurations
+.ccls
+.ccls-cache
+
 # Prerequisites
 *.d
 
