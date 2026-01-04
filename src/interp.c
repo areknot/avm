@@ -123,7 +123,7 @@ AVM_value_t *run() {
       AVM_value_t *val2 = pop(astack); // x
 
       if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
-        error("AVM_Add: Expected two integer values.");
+        error("AVM_Sub: Expected two integer values.");
       }
 
       push(astack, new_int(val2->int_value - val1->int_value)); // x - y
@@ -135,7 +135,7 @@ AVM_value_t *run() {
       AVM_value_t *val2 = pop(astack); // x
 
       if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
-        error("AVM_Add: Expected two integer values.");
+        error("AVM_Le: Expected two integer values.");
       }
 
       push(astack, new_bool(val2->int_value <= val1->int_value)); // x <= y

@@ -34,8 +34,6 @@ AVM_value_t* _pop(AVM_stack_t* stp, const char* name) {
 
 _Bool _push(AVM_stack_t* stp, AVM_value_t* val, const char* name) {
   (void)name;
-  int count = push_array(stp, val);
-  if (count == 0) return false;
 
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Pushed to %s:\n  ", name);
@@ -44,6 +42,8 @@ _Bool _push(AVM_stack_t* stp, AVM_value_t* val, const char* name) {
   print_stack(stp);
   printf("\n");
 #endif
+  int count = push_array(stp, val);
+  if (count == 0) return false;
 
   return true;
 }
@@ -113,9 +113,9 @@ void print_value(AVM_value_t *val) {
 void print_stack(AVM_stack_t *st) {
   printf("[");
   int size = array_size(st);
-  for (int i = 0; i < size; ++i) {
-    if (i > 0) printf(" ");
-    print_value(array_elem_unsafe(st, i));
+  for (int i = 1; i <= size; ++i) {
+    printf(" ");
+    print_value(array_elem_unsafe(st, size - i));
   }
   printf(" ]");
 }
