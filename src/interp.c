@@ -19,13 +19,13 @@ AVM_value_t *run();
 void init_avm(AVM_code_t *src, _Bool ignite) {
   code = src;
   pc = 0;
-  astack = NULL;
-  rstack = NULL;
+  astack = init_stack();
+  rstack = init_stack();
   env = NULL;
 
   if (ignite) {
-    push(&astack, &epsilon);
-    push(&rstack, new_clos(src->instr_size, NULL));
+    push(astack, &epsilon);
+    push(rstack, new_clos(src->instr_size, NULL));
   }
 }
 
@@ -71,23 +71,23 @@ AVM_value_t *run() {
 
     switch (instr->kind) {
     case AVM_Ldi:
-      push(&astack, new_int(instr->const_int));
+      push(astack, new_int(instr->const_int));
       break;
 
     case AVM_Ldb:
-      push(&astack, new_bool(instr->const_bool));
+      push(astack, new_bool(instr->const_bool));
       break;
 
     case AVM_Access:
-      push(&astack, lookup(env, instr->access));
+      push(astack, lookup(env, instr->access));
       break;
 
     case AVM_Closure:
-      push(&astack, new_clos(instr->addr, env));
+      push(astack, new_clos(instr->addr, env));
       break;
 
     case AVM_Let:
-      env = extend(env, pop(&astack));
+      env = extend(env, pop(astack));
       break;
 
     case AVM_EndLet:
@@ -99,7 +99,7 @@ AVM_value_t *run() {
       break;
 
     case AVM_CJump: {
-      AVM_value_t *val = pop(&astack);
+      AVM_value_t *val = pop(astack);
       if (val->kind == AVM_BoolVal && !(val->bool_value)) {
         pc = instr->addr;
       }
@@ -107,64 +107,64 @@ AVM_value_t *run() {
     }
 
     case AVM_Add: {
-      AVM_value_t *val1 = pop(&astack);
-      AVM_value_t *val2 = pop(&astack);
+      AVM_value_t *val1 = pop(astack);
+      AVM_value_t *val2 = pop(astack);
 
       if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
         error("AVM_Add: Expected two integer values.");
       }
 
-      push(&astack, new_int(val1->int_value + val2->int_value));
+      push(astack, new_int(val1->int_value + val2->int_value));
       break;
     }
 
     case AVM_Sub: {
-      AVM_value_t *val1 = pop(&astack); // y
-      AVM_value_t *val2 = pop(&astack); // x
+      AVM_value_t *val1 = pop(astack); // y
+      AVM_value_t *val2 = pop(astack); // x
 
       if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
         error("AVM_Add: Expected two integer values.");
       }
 
-      push(&astack, new_int(val2->int_value - val1->int_value)); // x - y
+      push(astack, new_int(val2->int_value - val1->int_value)); // x - y
       break;
     }
 
     case AVM_Le: {
-      AVM_value_t *val1 = pop(&astack); // y
-      AVM_value_t *val2 = pop(&astack); // x
+      AVM_value_t *val1 = pop(astack); // y
+      AVM_value_t *val2 = pop(astack); // x
 
       if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
         error("AVM_Add: Expected two integer values.");
       }
 
-      push(&astack, new_bool(val2->int_value <= val1->int_value)); // x <= y
+      push(astack, new_bool(val2->int_value <= val1->int_value)); // x <= y
       break;
     }
 
     case AVM_Eq: {
-      AVM_value_t *val1 = pop(&astack);
-      AVM_value_t *val2 = pop(&astack);
+      AVM_value_t *val1 = pop(astack);
+      AVM_value_t *val2 = pop(astack);
 
       if (val1->kind != AVM_IntVal || val2->kind != AVM_IntVal) {
         error("AVM_Eq: Expected two integer values.");
       }
 
-      push(&astack, new_bool(val1->int_value == val2->int_value));
+      push(astack, new_bool(val1->int_value == val2->int_value));
       break;
     }
 
     case AVM_Apply: {
       // Pop a function and an argument from astack.
-      AVM_value_t *func = pop(&astack);
-      AVM_value_t *arg = pop(&astack);
+      AVM_value_t *func = pop(astack);
+      AVM_value_t *arg = pop(astack);
 
       if (func->kind != AVM_ClosVal) {
         error("AVM_Apply: Expected function application.");
       }
 
       // Push the current address and the environment to rstack.
-      push(&rstack, new_clos(pc, env));
+      push(rstack, new_clos(pc, env));
       // Extend the environment.
       env = extend(extend(func->env, func), arg);
 
@@ -175,8 +175,8 @@ AVM_value_t *run() {
 
     case AVM_TailApply: {
       // Pop a function and an argument from astack.
-      AVM_value_t *func = pop(&astack);
-      AVM_value_t *arg = pop(&astack);
+      AVM_value_t *func = pop(astack);
+      AVM_value_t *arg = pop(astack);
 
       if (func->kind != AVM_ClosVal) {
         error("AVM_Apply: Expected function application.");
@@ -191,19 +191,19 @@ AVM_value_t *run() {
     }
 
     case AVM_PushMark:
-      push(&astack, &epsilon);
+      push(astack, &epsilon);
       break;
 
     case AVM_Grab: {
       // Pop an argument.
-      AVM_value_t *arg = pop(&astack);
+      AVM_value_t *arg = pop(astack);
 
       if (arg->kind == AVM_Epsilon) {
         // Get the caller's address.
-        AVM_value_t *ret_addr = pop(&rstack);
+        AVM_value_t *ret_addr = pop(rstack);
 
         // Push the current address to astack.
-        push(&astack, new_clos(pc, env));
+        push(astack, new_clos(pc, env));
 
         // Jump back to the caller.
         pc = ret_addr->addr;
@@ -217,15 +217,15 @@ AVM_value_t *run() {
 
     case AVM_Return: {
       // Pop two arguments.
-      AVM_value_t *arg1 = pop(&astack);
-      AVM_value_t *arg2 = pop(&astack);
+      AVM_value_t *arg1 = pop(astack);
+      AVM_value_t *arg2 = pop(astack);
 
       if (arg2->kind == AVM_Epsilon) {
         // Get the caller's address.
-        AVM_value_t *ret_addr = pop(&rstack);
+        AVM_value_t *ret_addr = pop(rstack);
 
         // Push the first argument to astack.
-        push(&astack, arg1);
+        push(astack, arg1);
 
         // Jump back to the caller.
         pc = ret_addr->addr;
@@ -239,7 +239,7 @@ AVM_value_t *run() {
     }
 
     case AVM_Halt:
-      return pop(&astack);
+      return pop(astack);
     }
   }
 }

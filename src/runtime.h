@@ -1,12 +1,11 @@
 #pragma once
 
 #include <stdbool.h>
-
-struct AVM_code;
-typedef struct AVM_code AVM_code_t;
+#include "array.h"
+#include "code.h"
 
 typedef struct AVM_value_node AVM_value_t;
-typedef struct AVM_stack_node AVM_stack_t;
+typedef array_t AVM_stack_t;
 typedef struct AVM_env_node AVM_env_t;
 
 // Value type
@@ -26,14 +25,10 @@ struct AVM_value_node {
   AVM_env_t* env;
 };
 
-
-struct AVM_stack_node {
-  AVM_value_t* val;
-  struct AVM_stack_node* next;
-};
-
-AVM_value_t* _pop(AVM_stack_t** stp, const char* name);
-_Bool _push(AVM_stack_t** stp, AVM_value_t* val, const char* name);
+AVM_stack_t* init_stack();
+void drop_stack(AVM_stack_t* stack);
+AVM_value_t* _pop(AVM_stack_t* stp, const char* name);
+_Bool _push(AVM_stack_t* stp, AVM_value_t* val, const char* name);
 
 #define pop(stp) _pop(stp, #stp)
 #define push(stp, val) _push(stp, val, #stp)

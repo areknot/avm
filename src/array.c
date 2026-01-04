@@ -18,6 +18,14 @@ void* array_elem(array_t* array, size_t idx) {
   return (idx < array->size) ? array->data[idx] : NULL;
 }
 
+void* array_last(array_t* array) {
+  return array->size == 0 ? NULL : array->data[array->size - 1];
+}
+
+void* array_first(array_t* array) {
+  return array_elem(array, 0);
+}
+
 size_t array_size(array_t* array) {
   return array->size;
 }

@@ -7,44 +7,44 @@
 void print_stack(AVM_stack_t *st);
 void print_env(AVM_env_t *env);
 
-AVM_value_t* _pop(AVM_stack_t** stp, const char* name) {
-  (void)name;
-  if (stp == NULL || *stp == NULL) return NULL;
+AVM_stack_t* init_stack() {
+  return make_array(ARRAY_MINIMAL_CAP);
+}
 
-  AVM_stack_t* st = *stp;
-  AVM_value_t* val = st->val;
+void drop_stack(AVM_stack_t* stack) {
+  drop_array(stack);
+}
+
+AVM_value_t* _pop(AVM_stack_t* stp, const char* name) {
+  (void)name;
+  AVM_value_t* val = array_last(stp);
+  int count = pop_array(stp);
+  if (count == 0) return NULL;
 
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Popped from %s:\n  ", name);
   print_value(val);
   printf(" <- ");
-  print_stack(st->next);
+  print_stack(stp);
   printf("\n");
 #endif
-
-  *stp = st->next;
-  free(st);
+  
   return val;
 }
 
-_Bool _push(AVM_stack_t** stp, AVM_value_t* val, const char* name) {
+_Bool _push(AVM_stack_t* stp, AVM_value_t* val, const char* name) {
   (void)name;
-  AVM_stack_t* node = NULL;
-  node = malloc(sizeof(AVM_stack_t));
-
-  if (!node) return false;
+  int count = push_array(stp, val);
+  if (count == 0) return false;
 
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Pushed to %s:\n  ", name);
   print_value(val);
   printf(" -> ");
-  print_stack(*stp);
+  print_stack(stp);
   printf("\n");
 #endif
 
-  node->val = val;
-  node->next = *stp;
-  *stp = node;
   return true;
 }
 
@@ -112,9 +112,10 @@ void print_value(AVM_value_t *val) {
 
 void print_stack(AVM_stack_t *st) {
   printf("[");
-  for (AVM_stack_t *p = st; p != NULL; p = p->next) {
-    printf(" ");
-    print_value(p->val);
+  int size = array_size(st);
+  for (int i = 0; i < size; ++i) {
+    if (i > 0) printf(" ");
+    print_value(array_elem_unsafe(st, i));
   }
   printf(" ]");
 }

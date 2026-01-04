@@ -20,6 +20,10 @@ void drop_array(array_t* array);
 /* Retrieving the data in array->data[idx]; NULL is returned if `idx`
    is out of bound. */
 void* array_elem(array_t* array, size_t idx);
+void* array_last(array_t* array);
+void* array_first(array_t* array);
+
+#define array_elem_unsafe(array, idx) (((array)->data)[idx])
 
 size_t array_size(array_t* array);
 
