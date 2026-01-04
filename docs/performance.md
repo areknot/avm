@@ -54,12 +54,17 @@ L_else:
     tapp
 ```
 
-Tarai(x, y, z) = y if x <= y
-Tarai(x, y, z) = Tarai(Tarai(x-1, y z), Tarai(y-1, z, x), Tarai(z-1, x, y))
+
+- `Tarai(x, y, z) = y` if `x <= y`
+- `Tarai(x, y, z) = Tarai(Tarai(x-1, y z), Tarai(y-1, z, x), Tarai(z-1, x, y))`
 
 ## Stack as linked lists
 
-In AVM, executing the code above took 43.02 seconds.
+When stacks are implemented using linked lists, executing the code above took 43.02 seconds.
+
+## Stack as dynamic arrays
+
+When changing the implementation of stacks from linked lists to dynamic arrays, the execusion of the code above took 24.03 seconds.
 
 ## Other languages 
 
@@ -172,5 +177,3 @@ puts(tarai(13, 7, 0))
 ```
 
 These code samples were took from https://qiita.com/Freezer/items/1badfbba34c13995eed4#c and executed on a Mac mini with Apple M4 Pro CPU and 24 GB memory.
-
-## Stack as arrays
