@@ -2,7 +2,7 @@
 #include "array.h"
 
 array_t* make_array(size_t capacity) {
-  array_t* array  = malloc(sizeof(array));
+  array_t* array  = malloc(sizeof(array_t));
   array->data     = malloc(sizeof(void*) * capacity);
   array->size     = 0;
   array->capacity = capacity;

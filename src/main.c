@@ -50,14 +50,13 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  AVM_code_t *tmp = realloc(code, (code->instr_size + 10) * sizeof(AVM_code_t));
-
-  if (tmp == NULL) {
-    fprintf(stderr, "Failed to load file\n");
+  AVM_instr_t *new_instr = realloc(code->instr, (code->instr_size + 10) * sizeof(AVM_instr_t));
+  if (new_instr == NULL) {
+    fprintf(stderr, "Failed to reallocate instructions.\n");
     return 1;
   }
 
-  code = tmp;
+  code->instr = new_instr;
   code->instr[code->instr_size] = HALT();
 
   init_avm(code, true);
