@@ -2,9 +2,9 @@
 
 #include "code.h"
 #include "runtime.h"
+#include "vm.h"
 
-void init_avm(AVM_code_t *src, _Bool ignite);
-AVM_value_t *run();
+AVM_value_t *run(AVM_VM* vm);
 
 // Functions for tests
 AVM_value_t *_run_code_with_result(AVM_code_t *src);

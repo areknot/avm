@@ -5,6 +5,7 @@
 #include "code.h"
 #include "avm_parser.h"
 #include "runtime.h"
+#include "vm.h"
 #include "interp.h"
 
 #define MAX_INPUT_SIZE 8192
@@ -59,8 +60,10 @@ int main(int argc, char *argv[]) {
   code->instr = new_instr;
   code->instr[code->instr_size] = HALT();
 
-  init_avm(code, true);
-  AVM_value_t *res = run();
+  AVM_VM vm = {};
+
+  init_vm(&vm, code, true);
+  AVM_value_t *res = run(&vm);
 
   printf("Result: ");
   print_value(res);

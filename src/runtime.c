@@ -28,7 +28,7 @@ AVM_value_t* _pop(AVM_stack_t* stp, const char* name) {
   print_stack(stp);
   printf("\n");
 #endif
-  
+
   return val;
 }
 
@@ -48,7 +48,8 @@ _Bool _push(AVM_stack_t* stp, AVM_value_t* val, const char* name) {
   return true;
 }
 
-AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val) {
+AVM_env_t* extend(struct AVM_VM *vm, AVM_env_t *env, AVM_value_t *val) {
+  (void)vm;
   AVM_env_t *node = NULL;
   node = malloc(sizeof(AVM_env_t));
 

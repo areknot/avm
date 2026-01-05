@@ -1,5 +1,17 @@
 #include "debug.h"
 #include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
+
+// Custom error report function.
+// Takes an error message in the same format as printf.
+void error(char *fmt, ... ) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
 
 void disassemble_instruction(AVM_code_t *code, int pc) {
   printf("%03d | ", pc);
