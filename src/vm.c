@@ -10,6 +10,7 @@ void init_vm(AVM_VM *vm, AVM_code_t *src, _Bool ignite) {
   vm->astack = init_stack();
   vm->rstack = init_stack();
   vm->env = NULL;
+  vm->objs = NULL;
 
   if (ignite) {
     push(vm->astack, &epsilon);
