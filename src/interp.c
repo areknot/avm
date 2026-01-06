@@ -2,30 +2,34 @@
 #include "debug.h"
 #include "interp.h"
 #include "memory.h"
+#include "runtime.h"
+#include "vm.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 void _run_code(AVM_code_t *src) {
-  AVM_VM vm = {0};
-  init_vm(&vm, src, false);
+  AVM_VM *vm = init_vm(src, false);
 
-  if (vm.code == NULL) return;
+  if (vm->code == NULL) return;
 
-  AVM_value_t *res = run(&vm);
+  AVM_value_t *res = run(vm);
 
   printf("Result: ");
   print_value(res);
   printf("\n");
+
+  finalize_vm(vm);
 }
 
 AVM_value_t *_run_code_with_result(AVM_code_t *src) {
-  AVM_VM vm = {0};
-  init_vm(&vm, src, false);
+  AVM_VM *vm = init_vm(src, false);
 
-  if (vm.code == NULL) return NULL;
+  if (vm->code == NULL) return NULL;
 
-  return run(&vm);
+  AVM_value_t *res = run(vm);
+  finalize_vm(vm);
+  return res;
 }
 
 AVM_value_t *run(AVM_VM* vm) {

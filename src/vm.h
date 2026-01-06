@@ -14,6 +14,6 @@ typedef struct AVM_VM {
 
 AVM_value_t epsilon;
 
-void init_vm(AVM_VM *vm, AVM_code_t *src, _Bool ignite);
+AVM_VM* init_vm(AVM_code_t *src, _Bool ignite);
 
 void finalize_vm(AVM_VM *vm);
