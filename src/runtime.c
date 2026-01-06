@@ -51,8 +51,7 @@ _Bool _push(AVM_stack_t* stp, AVM_value_t* val, const char* name) {
 }
 
 AVM_env_t* extend(struct AVM_VM *vm, AVM_env_t *env, AVM_value_t *val) {
-  AVM_object_t *tmp = allocate_object(vm, AVM_ObjEnvFrame);
-  AVM_env_t *node = &tmp->as.env_frame;
+  AVM_env_t *node = allocate_object(vm, sizeof(AVM_env_t), AVM_ObjEnvFrame);
 
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Extended env:\n  ");

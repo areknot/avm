@@ -19,17 +19,13 @@ typedef struct AVM_object AVM_object_t;
 
 struct AVM_object {
   AVM_object_kind kind;
-  union {
-    AVM_value_t val;
-    struct AVM_env_node env_frame;
-  } as;
   AVM_object_t *next;
 };
 
 struct AVM_VM;
 
-AVM_object_t *allocate_object(struct AVM_VM *vm, AVM_object_kind kind);
+void *allocate_object(struct AVM_VM *vm, size_t size, AVM_object_kind kind);
 
-AVM_value_t* new_int(struct AVM_VM *vm, int i);
+AVM_value_t *new_int(struct AVM_VM *vm, int i);
 AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b);
 AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env);

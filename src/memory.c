@@ -21,33 +21,30 @@ void *reallocate(void *ptr, size_t old_size, size_t new_size) {
   return tmp;
 }
 
-AVM_object_t *allocate_object(struct AVM_VM *vm, AVM_object_kind kind) {
-  AVM_object_t *res = reallocate(NULL, 0, sizeof(AVM_object_t));
-  res->kind = kind;
-  res->next = vm->objs;
-  vm->objs = res;
-  return res;
+void *allocate_object(struct AVM_VM *vm, size_t size, AVM_object_kind kind) {
+  AVM_object_t *header = reallocate(NULL, 0, sizeof(AVM_object_t) + size);
+  header->kind = kind;
+  header->next = vm->objs;
+  vm->objs = header;
+  return (void *)(header + 1); // return the address right after the header.
 }
 
 AVM_value_t* new_int(struct AVM_VM *vm, int i) {
-  AVM_object_t *node = allocate_object(vm, AVM_ObjValue);
-  AVM_value_t *res = &node->as.val;
+  AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
   res->kind = AVM_IntVal;
   res->int_value = i;
   return res;
 }
 
 AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b) {
-  AVM_object_t *node = allocate_object(vm, AVM_ObjValue);
-  AVM_value_t *res = &node->as.val;
+  AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
   res->kind = AVM_BoolVal;
   res->bool_value = b;
   return res;
 }
 
 AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env) {
-  AVM_object_t *node = allocate_object(vm, AVM_ObjValue);
-  AVM_value_t *res = &node->as.val;
+  AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
   res->kind = AVM_ClosVal;
   res->addr = l;
   res->env = env;
