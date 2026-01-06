@@ -14,7 +14,7 @@ void init_vm(AVM_VM *vm, AVM_code_t *src, _Bool ignite) {
 
   if (ignite) {
     push(vm->astack, &epsilon);
-    push(vm->rstack, new_clos(src->instr_size, NULL));
+    push(vm->rstack, new_clos(vm, src->instr_size, NULL));
   }
 }
 

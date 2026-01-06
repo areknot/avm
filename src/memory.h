@@ -1,7 +1,6 @@
 #pragma once
 #include <stddef.h>
 #include "runtime.h"
-#include "vm.h"
 
 /*
   old_size == 0 => allocate a new block of size new_size.
@@ -27,8 +26,10 @@ struct AVM_object {
   AVM_object_t *next;
 };
 
-AVM_object_t *allocate_object(size_t size, AVM_object_kind type);
+struct AVM_VM;
 
-AVM_value_t* new_int(int i);
-AVM_value_t *new_bool(_Bool b);
-AVM_value_t *new_clos(int l, AVM_env_t *env);
+AVM_object_t *allocate_object(struct AVM_VM *vm, AVM_object_kind kind);
+
+AVM_value_t* new_int(struct AVM_VM *vm, int i);
+AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b);
+AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env);

@@ -40,12 +40,12 @@ AVM_value_t *run(AVM_VM* vm) {
 
     switch (instr->kind) {
     case AVM_Ldi:
-      if (!push(vm->astack, new_int(instr->const_int)))
+      if (!push(vm->astack, new_int(vm, instr->const_int)))
         error("AVM_Ldi: Couldn't push %d.", instr->const_int);
       break;
 
     case AVM_Ldb:
-      if (!push(vm->astack, new_bool(instr->const_bool)))
+      if (!push(vm->astack, new_bool(vm, instr->const_bool)))
         error("AVM_Ldb: Couldn't push %s.", instr->const_bool ? "true" : "false");
       break;
 
@@ -61,7 +61,7 @@ AVM_value_t *run(AVM_VM* vm) {
     }
 
     case AVM_Closure: {
-      AVM_value_t *clos = new_clos(instr->addr, vm->env);
+      AVM_value_t *clos = new_clos(vm, instr->addr, vm->env);
       if (clos == NULL)
         error("AVM_Closure: Couldn't create a new closure.");
 
@@ -106,7 +106,7 @@ AVM_value_t *run(AVM_VM* vm) {
         error("AVM_Add: Expected two integer values.");
       }
 
-      if (!push(vm->astack, new_int(val1->int_value + val2->int_value))) // x + y
+      if (!push(vm->astack, new_int(vm, val1->int_value + val2->int_value))) // x + y
         error("AVM_Add: Couldn't push the result.");
       break;
     }
@@ -119,7 +119,7 @@ AVM_value_t *run(AVM_VM* vm) {
         error("AVM_Sub: Expected two integer values.");
       }
 
-      if (!push(vm->astack, new_int(val2->int_value - val1->int_value))) // x - y
+      if (!push(vm->astack, new_int(vm, val2->int_value - val1->int_value))) // x - y
         error("AVM_Sub: Couldn't push the result.");
       break;
     }
@@ -132,7 +132,7 @@ AVM_value_t *run(AVM_VM* vm) {
         error("AVM_Le: Expected two integer values.");
       }
 
-      if (!push(vm->astack, new_bool(val2->int_value <= val1->int_value))) // x <= y
+      if (!push(vm->astack, new_bool(vm, val2->int_value <= val1->int_value))) // x <= y
         error("AVM_Le: Couldn't push the result.");
       break;
     }
@@ -145,7 +145,7 @@ AVM_value_t *run(AVM_VM* vm) {
         error("AVM_Eq: Expected two integer values.");
       }
 
-      if (!push(vm->astack, new_bool(val1->int_value == val2->int_value))) // x == y
+      if (!push(vm->astack, new_bool(vm, val1->int_value == val2->int_value))) // x == y
         error("AVM_Eq: Couldn't push the result.");
       break;
     }
@@ -160,7 +160,7 @@ AVM_value_t *run(AVM_VM* vm) {
       }
 
       // Push the current address and the environment to rstack.
-      if (!push(vm->rstack, new_clos(vm->pc, vm->env)))
+      if (!push(vm->rstack, new_clos(vm, vm->pc, vm->env)))
         error("AVM_Apply: Couldn't push the return address");
 
       // Extend the environment.
@@ -218,7 +218,7 @@ AVM_value_t *run(AVM_VM* vm) {
           error("AVM_Grab: Couldn't get the caller's address.");
 
         // Push the current address to astack.
-        AVM_value_t *tmp = new_clos(vm->pc, vm->env);
+        AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env);
         if (tmp == NULL)
           error("AVM_Grab: Couldn't create a new closure.");
         if (!push(vm->astack, tmp))
@@ -229,7 +229,7 @@ AVM_value_t *run(AVM_VM* vm) {
         vm->env = ret_addr->env;
       } else {
         // Extend the current environment and continue.
-        AVM_value_t *cur_addr = new_clos(vm->pc, vm->env);
+        AVM_value_t *cur_addr = new_clos(vm, vm->pc, vm->env);
         if (cur_addr == NULL)
           error("AVM_Grab: Couldn't create a new closure.");
 
