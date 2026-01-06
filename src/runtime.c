@@ -1,4 +1,6 @@
+
 #include "runtime.h"
+#include "memory.h"
 #include "debug.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,11 +51,8 @@ _Bool _push(AVM_stack_t* stp, AVM_value_t* val, const char* name) {
 }
 
 AVM_env_t* extend(struct AVM_VM *vm, AVM_env_t *env, AVM_value_t *val) {
-  (void)vm;
-  AVM_env_t *node = NULL;
-  node = malloc(sizeof(AVM_env_t));
-
-  if (!node) return NULL; // Returns NULL if malloc failed.
+  AVM_object_t *tmp = allocate_object(vm, AVM_ObjEnvFrame);
+  AVM_env_t *node = &tmp->as.env_frame;
 
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Extended env:\n  ");
