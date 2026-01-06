@@ -46,6 +46,14 @@ void clean_array(array_t* array);
    element is returned. */
 int push_array(array_t* array, void* data);
 
+/* Appending all elements from `dst` to `src`. The number of actually
+   pushed element is returned. */
+int push_array_all(array_t* dst, array_t* src);
+
 /* Popping an element from `array`. the number of actually popped
    element is returned. */
 int pop_array(array_t* array);
+
+/* Creating a new array equal to `array`.
+   Note: This is shallow copy. */
+array_t* copy(array_t* array);

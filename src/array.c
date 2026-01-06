@@ -1,5 +1,7 @@
 
 #include "array.h"
+#include <string.h>
+#define MAX(x, y) ((x) < (y) ? y : x)
 
 array_t* make_array(size_t capacity) {
   array_t* array  = malloc(sizeof(array_t));
@@ -51,8 +53,28 @@ int push_array(array_t* array, void* data) {
   return 1;
 }
 
+int push_array_all(array_t* dst, array_t* src) {
+  size_t sum = dst->size + src->size;
+  if (sum >= dst->capacity) {
+    int code = reserve_array(dst, MAX(sum, ARRAY_BIGGER_CAP(dst->capacity)));
+    if (code == ARRAY_RESERVE_FAILURE) return 0;
+  }
+  for (size_t i = 0; i < src->size; i++) dst->data[dst->size + i] = src->data[i];
+  dst->size = sum;
+  return src->size;
+}
+
 int pop_array(array_t* array) {
   if (array->size == 0) return 0;
   --array->size;
   return 1;
+}
+
+array_t* copy(array_t* array) {
+  array_t* tmp  = malloc(sizeof(array_t));
+  tmp->data     = malloc(sizeof(void*) * array->capacity);
+  tmp->size     = array->size;
+  tmp->capacity = array->capacity;
+  memcpy(tmp->data, array->data, sizeof(void*) * array->size);
+  return tmp;
 }
