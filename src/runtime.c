@@ -90,10 +90,6 @@ AVM_env_t* init_env(struct AVM_VM *vm) {
   new_env->penv = make_array(ARRAY_MINIMAL_CAP);
   new_env->offset = 0;
 
-  // Add new_env->penv to vm.objs.
-  array_t **payload = allocate_object(vm, sizeof(array_t*), AVM_ObjEnvFrame);
-  *payload = new_env->penv;
-
   return new_env;
 }
 
