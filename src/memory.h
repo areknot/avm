@@ -12,7 +12,6 @@ void *reallocate(void *ptr, size_t old_size, size_t new_size);
 // Runtime objects
 typedef enum {
   AVM_ObjValue,
-  AVM_ObjEnvStack,
 } AVM_object_kind;
 
 typedef struct AVM_object AVM_object_t;

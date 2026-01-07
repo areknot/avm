@@ -147,10 +147,6 @@ void perpetuate(struct AVM_VM *vm, AVM_env_t *env) {
 
   pop_array_n(&env->cache, env->cache.size - env->offset);
   env->penv = new_penv;
-
-  // Add new_penv to vm->objs.
-  array_t **payload = allocate_object(vm, sizeof(array_t*), AVM_ObjEnvFrame);
-  *payload = new_penv;
 }
 
 void remove_head(struct AVM_VM *vm, AVM_env_t *env) {
@@ -166,10 +162,6 @@ void remove_head(struct AVM_VM *vm, AVM_env_t *env) {
     error("remove_head: The environment is empty.");
 
   env->penv = make_array(ARRAY_MINIMAL_CAP);
-
-  // Add new env to vm->objs.
-  array_t **payload = allocate_object(vm, sizeof(array_t*), AVM_ObjEnvFrame);
-  *payload = env->penv;
 }
 
 void print_value(AVM_value_t *val) {
