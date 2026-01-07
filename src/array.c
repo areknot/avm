@@ -60,7 +60,7 @@ int push_array_offset(array_t* dst, array_t* src, size_t offset) {
     int code = reserve_array(dst, MAX(sum, ARRAY_BIGGER_CAP(dst->capacity)));
     if (code == ARRAY_RESERVE_FAILURE) return -1;
   }
-  for (size_t i = offset; i < src->size; i++) dst->data[dst->size + i] = src->data[i];
+  for (size_t i = 0; i < src->size - offset; i++) dst->data[dst->size + i] = src->data[i + offset];
   dst->size = sum;
   return src->size;
 }
