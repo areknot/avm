@@ -1,7 +1,7 @@
 
 #include "runtime.h"
 #include "array.h"
-#include "memory.h"
+/* #include "memory.h" */
 #include "debug.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,7 +29,7 @@ AVM_value_t* apop(AVM_astack_t* stp) {
   printf("Popped from astack:\n  ");
   print_value(val);
   printf(" <- ");
-  print_stack(stp);
+  print_astack(stp);
   printf("\n");
 #endif
 
@@ -84,17 +84,21 @@ _Bool rpush(AVM_rstack_t* stp, AVM_ret_frame_t *frame) {
   return (count != 0);
 }
 
-AVM_env_t* init_env(struct AVM_VM *vm) {
+AVM_env_t* init_env() {
   AVM_env_t *new_env = malloc(sizeof(AVM_env_t));
   new_env->cache = *make_array(ARRAY_MINIMAL_CAP);
   new_env->penv = make_array(ARRAY_MINIMAL_CAP);
   new_env->offset = 0;
 
+/* #ifdef DEBUG_TRACE_EXECUTION */
+/*   printf("Env initialized:\n"); */
+/*   printf("penv @ %p, size: %zu, capacity: %zu\n", new_env->penv, new_env->penv->size, new_env->penv->capacity); */
+/*   printf("cache @ %p, size: %zu, capacity: %zu, offset: %zu\n  ", &new_env->cache, new_env->cache.size, new_env->cache.capacity, new_env->offset); */
+/* #endif */
   return new_env;
 }
 
-AVM_env_t* extend(struct AVM_VM *vm, AVM_env_t *env, AVM_value_t *val) {
-  (void)vm;
+AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val) {
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Extended env:\n  ");
   print_value(val);
@@ -102,7 +106,8 @@ AVM_env_t* extend(struct AVM_VM *vm, AVM_env_t *env, AVM_value_t *val) {
   print_env(env);
   printf("\n");
 #endif
-  push_array(&env->cache, val);
+  if (push_array(&env->cache, val) == 0)
+    return NULL;
   return env;
 }
 
@@ -136,7 +141,7 @@ AVM_value_t* lookup(AVM_env_t *env, size_t index) {
   }
 }
 
-void perpetuate(struct AVM_VM *vm, AVM_env_t *env) {
+void perpetuate(AVM_env_t *env) {
   array_t *new_penv = copy(env->penv);
   if (push_array_offset(new_penv, &env->cache, env->offset) == -1)
     error("perpetuate: Failed to reserve the memory for a new environment.");
@@ -145,7 +150,7 @@ void perpetuate(struct AVM_VM *vm, AVM_env_t *env) {
   env->penv = new_penv;
 }
 
-void remove_head(struct AVM_VM *vm, AVM_env_t *env) {
+void remove_head(AVM_env_t *env) {
   // Case 1: cache is not empty
   if (env->cache.size > env->offset) {
     pop_array(&env->cache);
@@ -206,13 +211,14 @@ void print_ret_frame(AVM_ret_frame_t *f) {
 
 void print_env(AVM_env_t *env) {
   printf("[");
-  for (size_t i = env->offset; i < env->cache.size; i++) {
+  for (size_t i = env->cache.size; i > env->offset; i--) {
     printf(" ");
-    print_value(array_elem(&env->cache, i));
+    print_value(array_elem(&env->cache, i-1));
   }
-  for (size_t i = 0; i < env->penv->size; i++) {
+  printf(" |");
+  for (size_t i = env->penv->size; i > 0; i--) {
     printf(" ");
-    print_value(array_elem(env->penv, i));
+    print_value(array_elem(env->penv, i-1));
   }
   printf(" ]");
 }

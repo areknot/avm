@@ -46,7 +46,7 @@ AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b) {
 AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env) {
   AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
   res->kind = AVM_ClosVal;
-  res->addr = l;
-  res->penv = env->penv;
+  res->clos_value.addr = l;
+  res->clos_value.penv = env->penv;
   return res;
 }

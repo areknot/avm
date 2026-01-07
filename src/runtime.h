@@ -54,10 +54,10 @@ _Bool rpush(AVM_rstack_t* stp, AVM_ret_frame_t *frame);
 
 struct AVM_VM;
 
-AVM_env_t* init_env(struct AVM_VM *vm);
-AVM_env_t* extend(struct AVM_VM *vm, AVM_env_t *env, AVM_value_t *val);
+AVM_env_t* init_env();
+AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val);
 AVM_value_t* lookup(AVM_env_t *env, size_t index);
-void perpetuate(struct AVM_VM *vm, AVM_env_t *env);
+void perpetuate(AVM_env_t *env);
 
 // Removes the head of `env`.
-void remove_head(struct AVM_VM *vm, AVM_env_t *env);
+void remove_head(AVM_env_t *env);

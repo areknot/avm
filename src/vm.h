@@ -6,8 +6,8 @@
 typedef struct AVM_VM {
   AVM_code_t *code;
   int pc;
-  AVM_stack_t *astack;
-  AVM_stack_t *rstack;
+  AVM_astack_t *astack;
+  AVM_rstack_t *rstack;
   AVM_env_t *env;
   AVM_object_t *objs;
 } AVM_VM;
