@@ -65,6 +65,7 @@ AVM_value_t *run(AVM_VM* vm) {
     }
 
     case AVM_Closure: {
+      perpetuate(vm, vm->env);
       AVM_value_t *clos = new_clos(vm, instr->addr, vm->env);
       if (clos == NULL)
         error("AVM_Closure: Couldn't create a new closure.");
@@ -85,7 +86,7 @@ AVM_value_t *run(AVM_VM* vm) {
     }
 
     case AVM_EndLet:
-      vm->env = vm->env->next;
+      remove_head(vm, vm->env);
       break;
 
     case AVM_Jump:

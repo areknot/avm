@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #define ARRAY_MINIMAL_CAP   32
@@ -46,13 +47,22 @@ void clean_array(array_t* array);
    element is returned. */
 int push_array(array_t* array, void* data);
 
-/* Appending all elements from `dst` to `src`. The number of actually
-   pushed element is returned. */
-int push_array_all(array_t* dst, array_t* src);
+/* Appending elements of `src` starting from `offset` to `dst`.
+   If it succeeds to reserve a new array, the number of actually
+   push element is returned. Otherwise, -1 is returned. */
+int push_array_offset(array_t* dst, array_t* src, size_t offset);
 
-/* Popping an element from `array`. the number of actually popped
+/* Appending all elements from `src` to `dst`. The number of actually
+   pushed element is returned. */
+#define push_array_all(dst, src) (push_array_offset((dst), (src), 0))
+
+/* Popping an element from `array` `n` times; the number of actually
+   popped element is returned. */
+int pop_array_n(array_t* array, size_t n);
+
+/* Popping an element from `array`; the number of actually popped
    element is returned. */
-int pop_array(array_t* array);
+#define pop_array(array) (pop_array_n(array, 1))
 
 /* Creating a new array equal to `array`.
    Note: This is shallow copy. */

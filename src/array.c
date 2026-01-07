@@ -53,21 +53,22 @@ int push_array(array_t* array, void* data) {
   return 1;
 }
 
-int push_array_all(array_t* dst, array_t* src) {
-  size_t sum = dst->size + src->size;
+int push_array_offset(array_t* dst, array_t* src, size_t offset) {
+  if (offset >= src->size) return 0;
+  size_t sum = dst->size + (src->size - offset);
   if (sum >= dst->capacity) {
     int code = reserve_array(dst, MAX(sum, ARRAY_BIGGER_CAP(dst->capacity)));
-    if (code == ARRAY_RESERVE_FAILURE) return 0;
+    if (code == ARRAY_RESERVE_FAILURE) return -1;
   }
-  for (size_t i = 0; i < src->size; i++) dst->data[dst->size + i] = src->data[i];
+  for (size_t i = offset; i < src->size; i++) dst->data[dst->size + i] = src->data[i];
   dst->size = sum;
   return src->size;
 }
 
-int pop_array(array_t* array) {
-  if (array->size == 0) return 0;
-  --array->size;
-  return 1;
+int pop_array_n(array_t* array, size_t n) {
+  if (array->size < n) return 0;
+  array->size = array->size - n;
+  return n;
 }
 
 array_t* copy(array_t* array) {
