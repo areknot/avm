@@ -15,7 +15,7 @@ TEST_SRCS = $(wildcard ./tests/*.c)
 TEST_OBJS = $(TEST_SRCS:.c=.o)
 TEST_TARGET = interp_tests
 
-all: $(TARGET)
+all: $(TARGET) $(TEST_TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $@
