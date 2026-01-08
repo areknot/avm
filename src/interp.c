@@ -196,7 +196,8 @@ AVM_value_t *run(AVM_VM* vm) {
       }
 
       // Extend the environment.
-      vm->env->offset = vm->env->cache.size;
+      /* vm->env->offset = vm->env->cache.size; */
+      pop_array_n(&vm->env->cache, vm->env->cache.size - vm->env->offset);
       vm->env->penv = func->clos_value.penv;
       if (extend(vm->env, func) == NULL)
         error("AVM_Apply: Couldn't extend the environment.");
