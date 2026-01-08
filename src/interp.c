@@ -242,11 +242,12 @@ AVM_value_t *run(AVM_VM* vm) {
         free(ret_frame);
       } else {
         // Extend the current environment and continue.
-        perpetuate(vm->env);
-        AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env);
-        if (tmp == NULL)
-          error("AVM_Grab: Couldn't create a new closure.");
-        if (extend(vm->env, tmp) == NULL)
+        /* perpetuate(vm->env); */
+        /* AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env); */
+        /* if (tmp == NULL) */
+        /*   error("AVM_Grab: Couldn't create a new closure."); */
+        // Note: we do NOT allow recursive call to curried function.
+        if (extend(vm->env, &epsilon) == NULL)
           error("AVM_Grab: Couldn't extend the environment.");
         if (extend(vm->env, arg) == NULL)
           error("AVM_Grab: Couldn't extend the environment.");
