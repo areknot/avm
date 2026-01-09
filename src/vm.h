@@ -12,7 +12,7 @@ typedef struct AVM_VM {
   AVM_object_t *objs;
 } AVM_VM;
 
-AVM_value_t epsilon;
+extern AVM_value_t epsilon;
 
 AVM_VM* init_vm(AVM_code_t *src, _Bool ignite);
 
