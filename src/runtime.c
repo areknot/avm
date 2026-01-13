@@ -86,7 +86,7 @@ _Bool rpush(AVM_rstack_t* stp, AVM_ret_frame_t *frame) {
 
 AVM_env_t* init_env() {
   AVM_env_t *new_env = malloc(sizeof(AVM_env_t));
-  new_env->cache = *make_array(ARRAY_MINIMAL_CAP);
+  new_env->cache = make_array(ARRAY_MINIMAL_CAP);
   new_env->penv = make_array(ARRAY_MINIMAL_CAP);
   new_env->offset = 0;
 
@@ -106,16 +106,16 @@ AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val) {
   print_env(env);
   printf("\n");
 #endif
-  if (push_array(&env->cache, val) == 0)
+  if (push_array(env->cache, val) == 0)
     return NULL;
   return env;
 }
 
-#define GET_CURRENT_SIZE(env) ((env)->cache.size - (env)->offset)
+#define GET_CURRENT_SIZE(env) ((env)->cache->size - (env)->offset)
 
 AVM_value_t* lookup(AVM_env_t *env, size_t index) {
   if (index < GET_CURRENT_SIZE(env)) {
-    AVM_value_t* res = array_elem(&env->cache, env->cache.size - index - 1);
+    AVM_value_t* res = array_elem(env->cache, env->cache->size - index - 1);
     if (res == NULL)
       error("lookup: Failed to find the variable %d.", index);
 #ifdef DEBUG_TRACE_EXECUTION
@@ -143,23 +143,23 @@ AVM_value_t* lookup(AVM_env_t *env, size_t index) {
 
 void perpetuate(AVM_env_t *env) {
   array_t *new_penv = copy(env->penv);
-  if (push_array_offset(new_penv, &env->cache, env->offset) == -1)
+  if (push_array_offset(new_penv, env->cache, env->offset) == -1)
     error("perpetuate: Failed to reserve the memory for a new environment.");
 
-  pop_array_n(&env->cache, env->cache.size - env->offset);
+  pop_array_n(env->cache, env->cache->size - env->offset);
   env->penv = new_penv;
 }
 
 void remove_head(AVM_env_t *env) {
   // Case 1: cache is not empty
-  if (env->cache.size > env->offset) {
-    pop_array(&env->cache);
+  if (env->cache->size > env->offset) {
+    pop_array(env->cache);
     return;
   }
 
   // Case 2: cache is empty
-  push_array_all(&env->cache, env->penv);
-  if (pop_array(&env->cache) == 0)
+  push_array_all(env->cache, env->penv);
+  if (pop_array(env->cache) == 0)
     error("remove_head: The environment is empty.");
 
   env->penv = make_array(ARRAY_MINIMAL_CAP);
@@ -211,9 +211,9 @@ void print_ret_frame(AVM_ret_frame_t *f) {
 
 void print_env(AVM_env_t *env) {
   printf("[");
-  for (size_t i = env->cache.size; i > env->offset; i--) {
+  for (size_t i = env->cache->size; i > env->offset; i--) {
     printf(" ");
-    print_value(array_elem(&env->cache, i-1));
+    print_value(array_elem(env->cache, i-1));
   }
   printf(" |");
   for (size_t i = env->penv->size; i > 0; i--) {

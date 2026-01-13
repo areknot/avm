@@ -1,7 +1,7 @@
-CC = gcc
+CC = /opt/homebrew/bin/gcc-15
 INCLUDES = -I./third_party/tree-sitter/include \
            -I./third_party/tree-sitter/src
-CFLAGS = -std=gnu11 -Wall -Wextra $(INCLUDES)
+CFLAGS = -std=gnu11 -Wall -Wextra $(INCLUDES) -O2
 
 SRCS = $(wildcard ./src/*.c)              \
        ./src/tree-sitter-avm/src/parser.c \

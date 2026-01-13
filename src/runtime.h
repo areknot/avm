@@ -9,7 +9,7 @@ typedef array_t AVM_rstack_t;
 
 typedef struct {
   array_t *penv;
-  array_t cache;
+  array_t *cache;
   size_t offset;
 } AVM_env_t;
 

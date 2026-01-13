@@ -174,7 +174,7 @@ AVM_value_t *run(AVM_VM* vm) {
         error("AVM_Apply: Couldn't push the return address");
 
       // Extend the environment.
-      vm->env->offset = vm->env->cache.size;
+      vm->env->offset = vm->env->cache->size;
       vm->env->penv = func->clos_value.penv;
       if (extend(vm->env, func) == NULL)
         error("AVM_Apply: Couldn't extend the environment.");
@@ -197,7 +197,7 @@ AVM_value_t *run(AVM_VM* vm) {
 
       // Extend the environment.
       /* vm->env->offset = vm->env->cache.size; */
-      pop_array_n(&vm->env->cache, vm->env->cache.size - vm->env->offset);
+      pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
       vm->env->penv = func->clos_value.penv;
       if (extend(vm->env, func) == NULL)
         error("AVM_Apply: Couldn't extend the environment.");
@@ -275,7 +275,7 @@ AVM_value_t *run(AVM_VM* vm) {
         // Jump back to the caller.
         vm->pc = ret_frame->addr;
         vm->env->penv = ret_frame->penv;
-        pop_array_n(&vm->env->cache, vm->env->cache.size - vm->env->offset);
+        pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
         vm->env->offset = ret_frame->offset;
         free(ret_frame);
       } else if (arg1->kind != AVM_ClosVal) {
@@ -283,7 +283,7 @@ AVM_value_t *run(AVM_VM* vm) {
       } else {
         /* Pop all the contents of the current cache, change the penv to that of arg1,
            and extend the environment. */
-        pop_array_n(&vm->env->cache, vm->env->cache.size - vm->env->offset);
+        pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
         vm->env->penv = arg1->clos_value.penv;
         if (extend(vm->env, arg1) == NULL)
           error("AVM_Return: Couldn't extend the environment.");
