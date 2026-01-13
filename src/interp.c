@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 void _run_code(AVM_code_t *src) {
   AVM_VM *vm = init_vm(src, false);
@@ -29,8 +30,11 @@ AVM_value_t *_run_code_with_result(AVM_code_t *src) {
   if (vm->code == NULL) return NULL;
 
   AVM_value_t *res = run(vm);
+  /* Copy the result */
+  AVM_value_t* res_ = malloc(sizeof(AVM_value_t));
+  memcpy(res_, res, sizeof(AVM_value_t));
   finalize_vm(vm);
-  return res;
+  return res_;
 }
 
 AVM_value_t *run(AVM_VM* vm) {

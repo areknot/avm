@@ -1,6 +1,7 @@
 
 #include "vm.h"
 #include "array.h"
+#include "memory.h"
 #include "runtime.h"
 #include <stdlib.h>
 
@@ -27,5 +28,42 @@ AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   return vm;
 }
 
+void free_object(AVM_object_t* header) {
+  /* Precond: header->kind == AVM_ObjValue */
+  AVM_value_t* value = (AVM_value_t*)(header + 1);
+  switch (value->kind) {
+  case AVM_Epsilon:
+    /* Impossible case */
+    break;
+  case AVM_BoolVal:
+  case AVM_IntVal:
+    goto FREE_OBJ;
+  case AVM_ClosVal:
+    drop_array(value->clos_value.penv);
+    goto FREE_OBJ;
+  FREE_OBJ:
+    reallocate(header, 0, 0);
+  }
+}
 
-void finalize_vm(AVM_VM *vm) { (void)vm; } /* TODO: implement this! */
+void finalize_vm(AVM_VM *vm) {
+  /* Free objs */
+  while (vm->objs != NULL) {
+    AVM_object_t* hd = vm->objs;
+    vm->objs = vm->objs->next;
+    free_object(hd);
+  }
+  /* Free return-frames */
+  for (size_t i = 0; i < array_size(vm->rstack); ++i) {
+    free(array_elem_unsafe(vm->rstack, i));
+  }
+  drop_array(vm->rstack);
+  /* Free environment */
+  drop_array(vm->env->cache);
+  /* `penv` has been freed. */
+  free(vm->env);
+  /* Free argument-stack */
+  drop_array(vm->astack);
+  /* Free the VM */
+  free(vm);
+}
