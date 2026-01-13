@@ -4,8 +4,8 @@
 ## Syntax of the bytecode
 
 A bytecode file records a series of instructions, possibly tagged by a
-preceding label. Spaces and semicolons are insignificant (i.e., they
-may appear anywhere).
+preceding label. Spaces are insignificant (i.e., they may appear
+anywhere).
 
 	<code>  ::= <block> | <block> <code>
 	<block> ::= <inst>  | <lab> : <inst>
@@ -36,9 +36,7 @@ and `<cmd/1>` takes one of the following forms,
 
 where `ℒ` denotes the set of words (`[a-zA-Z_][a-zA-Z0-9_]*`). Spaces
 cannot be put between sign (`-`) and numbers in integers.  Comments
-are followed by `#` and ended by a newline.
-
-**The parser cannot handle comment properly now.**
+follow `;` and are closed by a newline.
 
 ## Usage of the parser
 
@@ -68,13 +66,15 @@ Below is an example of the bytecode. The example is translated from
 modification.
 
 ```
+    ; Test Program
+    ; Computing 0 + 1 + … + 10
 main:
     clos F_sum
     let
     mark
     load 0
     load 10
-    acc 0
+    acc 0			; F_sum
     app
     endlet
     ret

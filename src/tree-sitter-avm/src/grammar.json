@@ -3,8 +3,12 @@
   "name": "avm",
   "rules": {
     "source_file": {
-      "type": "SYMBOL",
-      "name": "code"
+      "type": "FIELD",
+      "name": "code",
+      "content": {
+        "type": "SYMBOL",
+        "name": "code"
+      }
     },
     "code": {
       "type": "REPEAT1",
@@ -23,8 +27,12 @@
               "type": "SEQ",
               "members": [
                 {
-                  "type": "SYMBOL",
-                  "name": "lab"
+                  "type": "FIELD",
+                  "name": "lab",
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "lab"
+                  }
                 },
                 {
                   "type": "STRING",
@@ -38,23 +46,31 @@
           ]
         },
         {
-          "type": "SYMBOL",
-          "name": "inst"
+          "type": "FIELD",
+          "name": "inst",
+          "content": {
+            "type": "SYMBOL",
+            "name": "inst"
+          }
         }
       ]
     },
     "inst": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "cmd0"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "cmd1"
-        }
-      ]
+      "type": "FIELD",
+      "name": "cmd",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "cmd0"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "cmd1"
+          }
+        ]
+      }
     },
     "cmd0": {
       "type": "CHOICE",
@@ -110,29 +126,33 @@
       ]
     },
     "cmd1": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "load"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "acc"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "b"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "bf"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "clos"
-        }
-      ]
+      "type": "FIELD",
+      "name": "cmd1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "load"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "acc"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "b"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "bf"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "clos"
+          }
+        ]
+      }
     },
     "load": {
       "type": "SEQ",
@@ -142,17 +162,21 @@
           "value": "load"
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "integer"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "bool"
-            }
-          ]
+          "type": "FIELD",
+          "name": "value",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "integer"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "bool"
+              }
+            ]
+          }
         }
       ]
     },
@@ -164,8 +188,12 @@
           "value": "acc"
         },
         {
-          "type": "SYMBOL",
-          "name": "nat"
+          "type": "FIELD",
+          "name": "index",
+          "content": {
+            "type": "SYMBOL",
+            "name": "nat"
+          }
         }
       ]
     },
@@ -177,8 +205,12 @@
           "value": "b"
         },
         {
-          "type": "SYMBOL",
-          "name": "lab"
+          "type": "FIELD",
+          "name": "addr",
+          "content": {
+            "type": "SYMBOL",
+            "name": "lab"
+          }
         }
       ]
     },
@@ -190,8 +222,12 @@
           "value": "bf"
         },
         {
-          "type": "SYMBOL",
-          "name": "lab"
+          "type": "FIELD",
+          "name": "addr",
+          "content": {
+            "type": "SYMBOL",
+            "name": "lab"
+          }
         }
       ]
     },
@@ -203,8 +239,12 @@
           "value": "clos"
         },
         {
-          "type": "SYMBOL",
-          "name": "lab"
+          "type": "FIELD",
+          "name": "addr",
+          "content": {
+            "type": "SYMBOL",
+            "name": "lab"
+          }
         }
       ]
     },
@@ -258,7 +298,7 @@
         "members": [
           {
             "type": "STRING",
-            "value": "#"
+            "value": ";"
           },
           {
             "type": "PATTERN",
@@ -272,10 +312,6 @@
     {
       "type": "PATTERN",
       "value": "\\s"
-    },
-    {
-      "type": "STRING",
-      "value": ";"
     },
     {
       "type": "SYMBOL",

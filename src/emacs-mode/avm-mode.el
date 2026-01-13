@@ -80,7 +80,7 @@
   (setq-local indent-line-function 'avm-mode-indent-function))
 
 (define-generic-mode avm-mode
-  '("#")
+  '(";")
   '("let" "endlet" "add" "eq" "app"
     "tapp" "mark" "grab" "ret" "halt"
     "load" "acc" "b" "bf" "clos" "sub" "le")

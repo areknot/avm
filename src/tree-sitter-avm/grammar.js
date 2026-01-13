@@ -11,25 +11,26 @@ export default grammar({
   name: "avm",
 
   rules: {
-      source_file: $ => $.code,
+      source_file: $ => field("code", $.code),
       code: $ => repeat1($.block),
-      block: $ => seq(optional(seq($.lab, ":")), $.inst),
-      inst: $ => choice($.cmd0, $.cmd1),
+      block: $ => seq(optional(seq(field("lab", $.lab), ":")),
+		      field("inst", $.inst)),
+      inst: $ => field("cmd", choice($.cmd0, $.cmd1)),
       cmd0: $ => choice(
 	  'let'  , 'endlet' , 'add'  , 'sub', 'le', 'eq'  , 'app' ,
 	  'tapp' , 'mark'   , 'grab' , 'ret' , 'halt'
       ),
-      cmd1: $ => choice($.load, $.acc, $.b, $.bf, $.clos),
-      load: $ => seq('load', choice($.integer, $.bool)),
-      acc: $ => seq('acc', $.nat),
-      b: $ => seq('b', $.lab),
-      bf: $ => seq('bf', $.lab),
-      clos: $ => seq('clos', $.lab),
+      cmd1: $ => field("cmd1", choice($.load, $.acc, $.b, $.bf, $.clos)),
+      load: $ => seq('load', field("value", choice($.integer, $.bool))),
+      acc: $ => seq('acc', field("index", $.nat)),
+      b: $ => seq('b', field("addr", $.lab)),
+      bf: $ => seq('bf', field("addr", $.lab)),
+      clos: $ => seq('clos', field("addr", $.lab)),
       nat: $ => choice(/[1-9][0-9]*/, '0'),
       integer: $ => choice(/-?[1-9][0-9]*/, '0'),
       bool: $ => choice('true', 'false'),
       lab: $ => /[a-zA-Z_][a-zA-Z0-9_]*/,
-      comment: $ => token(seq('#', /.*/)),
+      comment: $ => token(seq(';', /.*/)),
   },
-    extras: $ => [/\s/, ';', $.comment]
+    extras: $ => [/\s/, $.comment]
 });

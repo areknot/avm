@@ -23,38 +23,38 @@ static AVM_parse_error error = {};
 
 AVM_parse_error *last_parse_error() { return &error; }
 
-#define REPORT(errno, node, format, ...)                                       \
-  do {                                                                         \
-    char *_m = malloc(200 * sizeof(char));                                     \
-    sprintf(_m, format, __VA_ARGS__);                                          \
-    report_error(node, _m);                                                    \
-    *errno = 1;                                                                \
-    return;                                                                    \
+#define REPORT(errno, node, format, ...)	\
+  do {						\
+    char *_m = malloc(200 * sizeof(char));	\
+    sprintf(_m, format, __VA_ARGS__);		\
+    report_error(node, _m);			\
+    *errno = 1;					\
+    return;					\
   } while (false)
 
-#define ASSERT_TYPE(errno, node, type)                                         \
-  do {                                                                         \
-    TSNode _x = node;                                                          \
-    if (strcmp(ts_node_type(_x), type) != 0) {                                 \
-      if (node_is_error(_x)) {                                              \
-        REPORT(errno, _x, "A syntax error%s", "");                 \
-      } else {                                                                 \
-        REPORT(errno, _x, "Expected <%s>, but found <%s>", type,               \
-               ts_node_type(_x));                                              \
-      }                                                                        \
-    }                                                                          \
+#define ASSERT_TYPE(errno, node, type)					\
+  do {									\
+    TSNode _x = node;							\
+    if (strcmp(ts_node_type(_x), type) != 0) {				\
+      if (node_is_error(_x)) {						\
+        REPORT(errno, _x, "A syntax error%s", "");			\
+      } else {								\
+        REPORT(errno, _x, "Expected <%s>, but found <%s>", type,	\
+               ts_node_type(_x));					\
+      }									\
+    }									\
   } while (false)
 
-#define SUCCESS(errno)                                                         \
-  do {                                                                         \
-    *(errno) = 0;                                                              \
-    return;                                                                    \
+#define SUCCESS(errno)				\
+  do {						\
+    *(errno) = 0;				\
+    return;					\
   } while (false)
 
-#define GUARD(errno)                                                           \
-  do {                                                                         \
-    if (*errno != 0)                                                           \
-      return;                                                                  \
+#define GUARD(errno)				\
+  do {						\
+    if (*errno != 0)				\
+      return;					\
   } while (false)
 
 void report_error(TSNode node, char *message) {
@@ -122,7 +122,7 @@ void parse_tree_read_cmd0(char *cmd0, TSNode node, AVM_instr_kind *kind,
 
 void parse_tree_read_cmd1(char* source, TSNode cmd1, AVM_instr_t* ptr_instr, int* errno) {
   if (strcmp(ts_node_type(cmd1), "load") == 0) {
-    TSNode param = ts_node_named_child(cmd1, 0);
+    TSNode param = ts_node_child_by_field_name(cmd1, "value", 5);
     char buffer[AVM_LITERAL_SIZE] = {};
     parse_tree_read_text(source, param, buffer, AVM_LITERAL_SIZE, errno);
     GUARD(errno);
@@ -146,7 +146,7 @@ void parse_tree_read_cmd1(char* source, TSNode cmd1, AVM_instr_t* ptr_instr, int
     *ptr_instr = instr;
     SUCCESS(errno);
   } else if (strcmp(ts_node_type(cmd1), "acc") == 0) {
-    TSNode param = ts_node_named_child(cmd1, 0);
+    TSNode param = ts_node_child_by_field_name(cmd1, "index", 5);
     char buffer[AVM_LITERAL_SIZE] = {};
     parse_tree_read_text(source, param, buffer, AVM_LITERAL_SIZE, errno);
     GUARD(errno);
@@ -174,7 +174,7 @@ void parse_tree_read_cmd1(char* source, TSNode cmd1, AVM_instr_t* ptr_instr, int
              "Expected a instruction with a parameter, but found <%s>",
              ts_node_type(cmd1));
     }
-    TSNode lab_node = ts_node_named_child(cmd1, 0);
+    TSNode lab_node = ts_node_child_by_field_name(cmd1, "addr", 4);
     char *label = malloc(sizeof(char) * AVM_LABEL_SIZE + 10);
     parse_tree_read_text(source, lab_node, label, AVM_LABEL_SIZE + 10, errno);
     GUARD(errno);
@@ -187,12 +187,10 @@ void parse_tree_read_cmd1(char* source, TSNode cmd1, AVM_instr_t* ptr_instr, int
 void parse_tree_read_block(char *source, TSNode block_node,
                            AVM_instr_array instr_buffer, location_array locs,
                            int *errno) {
-  TSNode instr_node = {};
-  if (ts_node_named_child_count(block_node) == 1)
-    instr_node = ts_node_named_child(block_node, 0);
-  else {
-    instr_node = ts_node_named_child(block_node, 1);
-    TSNode lab_node = ts_node_named_child(block_node, 0);
+  TSNode instr_node = ts_node_child_by_field_name(block_node, "inst", 4);
+  TSNode lab_node   = ts_node_child_by_field_name(block_node, "lab", 3);
+
+  if (!ts_node_is_null(lab_node)) {
     ASSERT_TYPE(errno, lab_node, "lab");
     int offset = instr_buffer->size;
     char *label = malloc(sizeof(char) * AVM_LABEL_SIZE + 10);
@@ -201,8 +199,9 @@ void parse_tree_read_block(char *source, TSNode block_node,
     location loc = {label, offset};
     array_push(locs, loc);
   }
+
   ASSERT_TYPE(errno, instr_node, "inst");
-  TSNode cmd_node = ts_node_named_child(instr_node, 0);
+  TSNode cmd_node = ts_node_child_by_field_name(instr_node, "cmd", 3);
   if (strcmp(ts_node_type(cmd_node), "cmd0") == 0) {
     char cmd0_buffer[AVM_CMD0_SIZE] = {};
     parse_tree_read_text(source, cmd_node, cmd0_buffer, AVM_CMD0_SIZE, errno);
@@ -215,7 +214,7 @@ void parse_tree_read_block(char *source, TSNode block_node,
     array_push(instr_buffer, instr);
     SUCCESS(errno);
   } else if (strcmp(ts_node_type(cmd_node), "cmd1") == 0) {
-    TSNode cmd1_node = ts_node_named_child(cmd_node, 0);
+    TSNode cmd1_node = ts_node_child_by_field_name(cmd_node, "cmd1", 4);
     AVM_instr_t instr = {};
     parse_tree_read_cmd1(source, cmd1_node, &instr, errno);
     GUARD(errno);
@@ -230,7 +229,7 @@ void parse_tree_read_block(char *source, TSNode block_node,
 void parse_tree_read_top(TSTree *tree, TSNode *node, int *errno) {
   TSNode root_node = ts_tree_root_node(tree);
   ASSERT_TYPE(errno, root_node, "source_file");
-  TSNode code_node = ts_node_named_child(root_node, 0);
+  TSNode code_node = ts_node_child_by_field_name(root_node, "code", 4);
   ASSERT_TYPE(errno, code_node, "code");
   *node = code_node;
   SUCCESS(errno);
@@ -242,6 +241,8 @@ void parse_tree_read(char *source, TSNode code_node,
   int count = ts_node_named_child_count(code_node);
   for (int i = 0; i < count; ++i) {
     TSNode block_node = ts_node_named_child(code_node, i);
+    if (strcmp(ts_node_type(block_node), "comment") == 0)
+      continue;
     ASSERT_TYPE(errno, block_node, "block");
     parse_tree_read_block(source, block_node, instr_buffer, locs, errno);
     GUARD(errno);
@@ -293,7 +294,18 @@ void parse_tree(char *source, TSTree *tree, AVM_code_t** code, int *errno) {
   char *message = malloc(100 * sizeof(char));
   sprintf(message, "Unable to backpatch the label (offset = %d)",
           backpatch_result);
-  report_error(ts_node_named_child(code_node, backpatch_result), message);
+  int blame = 0;
+  TSNode blame_node = {};
+  for (size_t i = 0; i < ts_node_named_child_count(code_node); ++i) {
+    TSNode node = ts_node_named_child(code_node, i);
+    if (strcmp(ts_node_type(node), "comment") == 0) continue;
+    if (blame == backpatch_result) {
+      blame_node = node;
+      break;
+    }
+    ++blame;
+  }
+  report_error(blame_node, message);
   *errno = 1;
 clean:
   for (size_t i = 0; i < locs->size; ++i)

@@ -1,10 +1,12 @@
+    ; Test Program
+    ; Computing 0 + 1 + … + 10
 main:
     clos F_sum
     let
     mark
     load 0
     load 10
-    acc 0
+    acc 0			; F_sum
     app
     endlet
     ret
