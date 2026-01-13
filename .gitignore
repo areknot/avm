@@ -6,6 +6,7 @@ avm-echo
 # LSP configurations
 .ccls
 .ccls-cache
+.clangd
 
 # Prerequisites
 *.d
