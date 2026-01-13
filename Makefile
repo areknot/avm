@@ -1,4 +1,4 @@
-CC = /opt/homebrew/bin/gcc-15
+CC = gcc
 INCLUDES = -I./third_party/tree-sitter/include \
            -I./third_party/tree-sitter/src
 CFLAGS = -std=gnu11 -Wall -Wextra $(INCLUDES) -O2
