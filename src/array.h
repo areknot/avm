@@ -49,7 +49,7 @@ int push_array(array_t* array, void* data);
 
 /* Appending elements of `src` starting from `offset` to `dst`.
    If it succeeds to reserve a new array, the number of actually
-   push element is returned. Otherwise, -1 is returned. */
+   pushed element is returned. Otherwise, -1 is returned. */
 int push_array_offset(array_t* dst, array_t* src, size_t offset);
 
 /* Appending all elements from `src` to `dst`. The number of actually
