@@ -50,3 +50,28 @@ AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env) {
   res->clos_value.penv = env->penv;
   return res;
 }
+
+
+/* GC */
+
+void free_object(AVM_object_t* header) {
+  if (header->kind = AVM_ObjEnv) {
+    /* implement here. */
+    return;
+  }
+
+  AVM_value_t* value = (AVM_value_t*)(header + 1);
+  switch (value->kind) {
+  case AVM_Epsilon:
+    /* Impossible case */
+    break;
+  case AVM_BoolVal:
+  case AVM_IntVal:
+    goto FREE_OBJ;
+  case AVM_ClosVal:
+    drop_array(value->clos_value.penv);
+    goto FREE_OBJ;
+  FREE_OBJ:
+    reallocate(header, 0, 0);
+  }
+}

@@ -28,24 +28,6 @@ AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   return vm;
 }
 
-void free_object(AVM_object_t* header) {
-  /* Precond: header->kind == AVM_ObjValue */
-  AVM_value_t* value = (AVM_value_t*)(header + 1);
-  switch (value->kind) {
-  case AVM_Epsilon:
-    /* Impossible case */
-    break;
-  case AVM_BoolVal:
-  case AVM_IntVal:
-    goto FREE_OBJ;
-  case AVM_ClosVal:
-    drop_array(value->clos_value.penv);
-    goto FREE_OBJ;
-  FREE_OBJ:
-    reallocate(header, 0, 0);
-  }
-}
-
 void finalize_vm(AVM_VM *vm) {
   /* Free objs */
   while (vm->objs != NULL) {

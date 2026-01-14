@@ -28,3 +28,5 @@ void *allocate_object(struct AVM_VM *vm, size_t size, AVM_object_kind kind);
 AVM_value_t *new_int(struct AVM_VM *vm, int i);
 AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b);
 AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env);
+
+void free_object(AVM_object_t* header);
