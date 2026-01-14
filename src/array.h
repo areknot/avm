@@ -15,7 +15,10 @@ typedef struct {
 /* Allocating a fresh, empty array */
 array_t* make_array(size_t capacity);
 
-/* Deallocating a array */
+/* Initializing an array at the location pointed to by `array`. */
+void init_array(array_t* array, size_t capacity);
+
+/* Deallocating an array */
 void drop_array(array_t* array);
 
 /* Retrieving the data in array->data[idx]; NULL is returned if `idx`

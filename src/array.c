@@ -11,6 +11,12 @@ array_t* make_array(size_t capacity) {
   return array;
 }
 
+void init_array(array_t* array, size_t capacity) {
+  array->data     = malloc(sizeof(void*) * capacity);
+  array->size     = 0;
+  array->capacity = capacity;
+}
+
 void drop_array(array_t* array) {
   free(array->data);
   free(array);
