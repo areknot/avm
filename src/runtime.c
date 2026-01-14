@@ -1,7 +1,8 @@
 
 #include "runtime.h"
 #include "array.h"
-/* #include "memory.h" */
+#include "memory.h"
+#include "vm.h"
 #include "debug.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -84,10 +85,10 @@ _Bool rpush(AVM_rstack_t* stp, AVM_ret_frame_t *frame) {
   return (count != 0);
 }
 
-AVM_env_t* init_env() {
+AVM_env_t* init_env(struct AVM_VM *vm) {
   AVM_env_t *new_env = malloc(sizeof(AVM_env_t));
   new_env->cache = make_array(ARRAY_MINIMAL_CAP);
-  new_env->penv = make_array(ARRAY_MINIMAL_CAP);
+  new_env->penv = new_penv(vm);
   new_env->offset = 0;
 
 /* #ifdef DEBUG_TRACE_EXECUTION */
@@ -95,6 +96,7 @@ AVM_env_t* init_env() {
 /*   printf("penv @ %p, size: %zu, capacity: %zu\n", new_env->penv, new_env->penv->size, new_env->penv->capacity); */
 /*   printf("cache @ %p, size: %zu, capacity: %zu, offset: %zu\n  ", &new_env->cache, new_env->cache.size, new_env->cache.capacity, new_env->offset); */
 /* #endif */
+
   return new_env;
 }
 
@@ -141,16 +143,18 @@ AVM_value_t* lookup(AVM_env_t *env, size_t index) {
   }
 }
 
-void perpetuate(AVM_env_t *env) {
-  array_t *new_penv = copy(env->penv);
-  if (push_array_offset(new_penv, env->cache, env->offset) == -1)
+void perpetuate(struct AVM_VM *vm, AVM_env_t *env) {
+  array_t *tmp = new_penv(vm);
+  if (push_array_all(tmp, env->penv) < 0)
+    error("perpetuate: Failed to copy the current penv.");
+  if (push_array_offset(tmp, env->cache, env->offset) == -1)
     error("perpetuate: Failed to reserve the memory for a new environment.");
 
   pop_array_n(env->cache, env->cache->size - env->offset);
-  env->penv = new_penv;
+  env->penv = tmp;
 }
 
-void remove_head(AVM_env_t *env) {
+void remove_head(struct AVM_VM *vm, AVM_env_t *env) {
   // Case 1: cache is not empty
   if (env->cache->size > env->offset) {
     pop_array(env->cache);
@@ -162,7 +166,7 @@ void remove_head(AVM_env_t *env) {
   if (pop_array(env->cache) == 0)
     error("remove_head: The environment is empty.");
 
-  env->penv = make_array(ARRAY_MINIMAL_CAP);
+  env->penv = new_penv(vm);
 }
 
 void print_value(AVM_value_t *val) {

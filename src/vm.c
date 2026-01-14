@@ -11,10 +11,10 @@ AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   AVM_VM *vm = malloc(sizeof(AVM_VM));
   vm->code = src;
   vm->pc = 0;
+  vm->objs = NULL;
   vm->astack = init_astack();
   vm->rstack = init_rstack();
-  vm->env = init_env();
-  vm->objs = NULL;
+  vm->env = init_env(vm);
 
   if (ignite) {
     apush(vm->astack, &epsilon);

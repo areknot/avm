@@ -43,11 +43,17 @@ AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b) {
   return res;
 }
 
-AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env) {
+AVM_value_t *new_clos(struct AVM_VM *vm, int l, array_t *penv) {
   AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
   res->kind = AVM_ClosVal;
   res->clos_value.addr = l;
-  res->clos_value.penv = env->penv;
+  res->clos_value.penv = penv;
+  return res;
+}
+
+array_t *new_penv(struct AVM_VM *vm) {
+  array_t *res = allocate_object(vm, sizeof(array_t), AVM_ObjPEnv);
+  init_array(res, ARRAY_MINIMAL_CAP);
   return res;
 }
 
@@ -55,23 +61,11 @@ AVM_value_t *new_clos(struct AVM_VM *vm, int l, AVM_env_t *env) {
 /* GC */
 
 void free_object(AVM_object_t* header) {
-  if (header->kind = AVM_ObjEnv) {
-    /* implement here. */
-    return;
+  if (header->kind == AVM_ObjPEnv) {
+    array_t *penv = (array_t*)(header + 1);
+    free(penv->data);
   }
 
-  AVM_value_t* value = (AVM_value_t*)(header + 1);
-  switch (value->kind) {
-  case AVM_Epsilon:
-    /* Impossible case */
-    break;
-  case AVM_BoolVal:
-  case AVM_IntVal:
-    goto FREE_OBJ;
-  case AVM_ClosVal:
-    drop_array(value->clos_value.penv);
-    goto FREE_OBJ;
-  FREE_OBJ:
-    reallocate(header, 0, 0);
-  }
+  reallocate(header, 0, 0);
+  return;
 }

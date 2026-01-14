@@ -70,8 +70,8 @@ AVM_value_t *run(AVM_VM* vm) {
     }
 
     case AVM_Closure: {
-      perpetuate(vm->env);
-      AVM_value_t *clos = new_clos(vm, instr->addr, vm->env);
+      perpetuate(vm, vm->env);
+      AVM_value_t *clos = new_clos(vm, instr->addr, vm->env->penv);
       if (clos == NULL)
         error("AVM_Closure: Couldn't create a new closure.");
 
@@ -91,7 +91,7 @@ AVM_value_t *run(AVM_VM* vm) {
     }
 
     case AVM_EndLet:
-      remove_head(vm->env);
+      remove_head(vm, vm->env);
       break;
 
     case AVM_Jump:
@@ -231,8 +231,8 @@ AVM_value_t *run(AVM_VM* vm) {
           error("AVM_Grab: Couldn't get the caller's address.");
 
         // Push the current address to astack.
-        perpetuate(vm->env);
-        AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env);
+        perpetuate(vm, vm->env);
+        AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env->penv);
         if (tmp == NULL)
           error("AVM_Grab: Couldn't create a new closure.");
         if (!apush(vm->astack, tmp))
