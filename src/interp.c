@@ -225,11 +225,6 @@ AVM_value_t *run(AVM_VM* vm) {
       if (arg == NULL) {
         error("AVM_Grab: Expected an argument.");
       } else if (arg->kind == AVM_Epsilon) {
-        // Get the caller's address.
-        AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
-        if (ret_frame == NULL)
-          error("AVM_Grab: Couldn't get the caller's address.");
-
         // Push the current address to astack.
         perpetuate(vm, vm->env);
         AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env->penv);
@@ -237,6 +232,11 @@ AVM_value_t *run(AVM_VM* vm) {
           error("AVM_Grab: Couldn't create a new closure.");
         if (!apush(vm->astack, tmp))
           error("AVM_Grab: Couldn't push the current address.");
+
+        // Get the caller's address.
+        AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
+        if (ret_frame == NULL)
+          error("AVM_Grab: Couldn't get the caller's address.");
 
         // Jump back to the caller.
         vm->pc = ret_frame->addr;
@@ -267,14 +267,14 @@ AVM_value_t *run(AVM_VM* vm) {
       if (arg1 == NULL || arg2 == NULL) {
         error("AVM_Return: Expected two items on the argument stack.");
       } else if (arg2->kind == AVM_Epsilon) {
+        // Push the first argument to astack.
+        if (!apush(vm->astack, arg1))
+          error("AVM_Return: Couldn't push the result to the argument stack.");
+
         // Get the caller's address.
         AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
         if (ret_frame == NULL)
           error("AVM_Return: Couldn't get the caller's address.");
-
-        // Push the first argument to astack.
-        if (!apush(vm->astack, arg1))
-          error("AVM_Return: Couldn't push the result to the argument stack.");
 
         // Jump back to the caller.
         vm->pc = ret_frame->addr;

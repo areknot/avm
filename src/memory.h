@@ -3,12 +3,14 @@
 #include "runtime.h"
 #include "array.h"
 
+struct AVM_VM;
+
 /*
   old_size == 0                 => allocate a new block of size new_size.
   old_size > 0 /\ new_size == 0 => free ptr.
   old_size > 0 /\ new_size > 0  => reallocate.
 */
-void *reallocate(void *ptr, size_t old_size, size_t new_size);
+void *reallocate(struct AVM_VM *vm, void *ptr, size_t old_size, size_t new_size);
 
 // Runtime objects
 typedef enum {
@@ -20,10 +22,11 @@ typedef struct AVM_object AVM_object_t;
 
 struct AVM_object {
   AVM_object_kind kind;
+  _Bool is_marked;
   AVM_object_t *next;
 };
 
-struct AVM_VM;
+
 
 void *allocate_object(struct AVM_VM *vm, size_t size, AVM_object_kind kind);
 
@@ -32,4 +35,6 @@ AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b);
 AVM_value_t *new_clos(struct AVM_VM *vm, int l, array_t *penv);
 array_t *new_penv(struct AVM_VM *vm);
 
-void free_object(AVM_object_t* header);
+void free_object(struct AVM_VM *vm, AVM_object_t* header);
+
+void run_gc(struct AVM_VM *vm);

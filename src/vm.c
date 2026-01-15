@@ -7,6 +7,7 @@
 
 AVM_value_t epsilon = { .kind = AVM_Epsilon };
 
+
 AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   AVM_VM *vm = malloc(sizeof(AVM_VM));
   vm->code = src;
@@ -15,6 +16,8 @@ AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   vm->astack = init_astack();
   vm->rstack = init_rstack();
   vm->env = init_env(vm);
+  vm->allocated_bytes = 0;
+  vm->next_gc = MAX_HEAP_SIZE;    /* 1 MiB */
 
   if (ignite) {
     apush(vm->astack, &epsilon);
@@ -33,7 +36,7 @@ void finalize_vm(AVM_VM *vm) {
   while (vm->objs != NULL) {
     AVM_object_t* hd = vm->objs;
     vm->objs = vm->objs->next;
-    free_object(hd);
+    free_object(vm, hd);
   }
   /* Free return-frames */
   for (size_t i = 0; i < array_size(vm->rstack); ++i) {
