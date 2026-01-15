@@ -226,3 +226,12 @@ void print_env(AVM_env_t *env) {
   }
   printf(" ]");
 }
+
+void print_penv(array_t *penv) {
+  printf("[|");
+  for (size_t i = penv->size; i > 0; i--) {
+    printf(" ");
+    print_value(array_elem(penv, i-1));
+  }
+  printf(" ]");
+}

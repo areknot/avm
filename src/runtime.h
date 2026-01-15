@@ -61,3 +61,10 @@ void perpetuate(struct AVM_VM *vm, AVM_env_t *env);
 
 // Removes the head of `env`.
 void remove_head(struct AVM_VM *vm, AVM_env_t *env);
+
+void print_value(AVM_value_t *val);
+void print_astack(AVM_astack_t *st);
+void print_rstack(AVM_astack_t *st);
+void print_ret_frame(AVM_ret_frame_t *f);
+void print_env(AVM_env_t *env);
+void print_penv(array_t *env);
