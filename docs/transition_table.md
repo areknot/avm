@@ -40,7 +40,7 @@ C(b, venv) = Ldb(b)
 C(e1 + e2, venv) = C(e2, venv); C(e1, venv); Add
 C(e1 = e2, venv) = C(e2, venv); C(e1, venv); Eq
 C(let x = e1 in e2, venv) = C(e1, venv); Let; C(e2, x :: venv); EndLet
-C(if e1 then e2 else e3, venv) = C(e1, venv); CJump(l1); C(e2, venv); Jump l2; l1:C(e3, venv); l2:...
+C(if e1 then e2 else e3, venv) = C(e1, venv); CJump(l1); C(e2, venv); ... l1:C(e3, venv)
 
 T(fun x -> e, venv) = Grab; T(e, x :: _ :: venv)
 T(let rec f x = e1 in e2, venv) = Closure(l); Let; T(e2, f :: venv) ... l:T(e1, x :: f :: venv)
@@ -51,7 +51,7 @@ T(b, venv) = Ldb(b); Return
 T(e1 + e2, venv) = C(e2, venv); C(e1, venv); Add; Return
 T(e1 = e2, venv) = C(e2, venv); C(e1, venv); Eq; Return
 T(let x = e1 in e2, venv) = C(e1, venv); Let; T(e2, x :: venv)
-T(if e1 then e2 else e3, venv) = C(e1, venv); CJump(l1); T(e2, venv); Jump l2; l1:T(e3, venv); l2:...
+T(if e1 then e2 else e3, venv) = C(e1, venv); CJump(l1); T(e2, venv); ... l1:T(e3, venv)
 ```
 
 Reference: https://www.logic.cs.tsukuba.ac.jp/jikken/zam.html
