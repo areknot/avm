@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include "array.h"
 
-typedef struct AVM_value_node AVM_value_t;
 typedef array_t AVM_astack_t;
 typedef array_t AVM_rstack_t;
 
@@ -19,25 +18,52 @@ typedef struct {
   size_t offset;
 } AVM_ret_frame_t;
 
-// Value type
-typedef enum {
-    AVM_IntVal,
-    AVM_BoolVal,
-    AVM_ClosVal,
-    AVM_Epsilon
-} AVM_value_kind;
+typedef uint64_t AVM_value_t;
 
-struct AVM_value_node {
-  AVM_value_kind kind;
-  union {
-    int int_value;
-    _Bool bool_value;
-    struct {
-      int addr;
-      array_t *penv;
-    } clos_value;
-  };
-};
+#define QNAN        ((uint64_t)0x7ffc000000000000)
+
+#define TAG_MASK    ((uint64_t)0xffff000000000000)
+
+#define TAG_PTR     ((uint64_t)0x7ffc000000000000)
+#define TAG_INT     ((uint64_t)0x7ffd000000000000)
+#define TAG_MISC    ((uint64_t)0x7ffe000000000000)
+
+#define TAG_EPSILON 1
+#define TAG_FALSE   2
+#define TAG_TRUE    3
+
+#define VAL_EPSILON (TAG_MISC | TAG_EPSILON)
+#define VAL_FALSE   (TAG_MISC | TAG_FALSE)
+#define VAL_TRUE    (TAG_MISC | TAG_TRUE)
+
+#define IS_PTR(v)   (((v) & TAG_MASK) == TAG_PTR)
+#define IS_INT(v) (((v) & TAG_MASK) == TAG_INT)
+#define IS_BOOL(v) (((v) | 1) == VAL_TRUE)
+#define IS_EPSILON(v) ((v) == VAL_EPSILON)
+
+static inline AVM_value_t mk_int(int v) {
+  return TAG_INT | (uint32_t)v;
+}
+
+static inline AVM_value_t mk_ptr(void *p) {
+  return TAG_PTR | (uint64_t)(uintptr_t)p;
+}
+
+static inline AVM_value_t mk_bool(_Bool b) {
+  return b ? VAL_TRUE : VAL_FALSE;
+}
+
+static inline int val_int(AVM_value_t v) {
+  return (int)v;
+}
+
+static inline void *val_ptr(AVM_value_t v) {
+  return (void*)(v & 0x0000ffffffffffff);
+}
+
+static inline _Bool val_bool(AVM_value_t v) {
+  return v == VAL_TRUE;
+}
 
 
 void print_value(AVM_value_t*);
