@@ -47,32 +47,27 @@ void *allocate_object(struct AVM_VM *vm, size_t size, AVM_object_kind kind) {
 
 }
 
-AVM_value_t* new_int(struct AVM_VM *vm, int i) {
-  AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
-  res->kind = AVM_IntVal;
-  res->int_value = i;
-  return res;
+inline AVM_value_t new_int(struct AVM_VM *vm, int i) {
+  (void)vm;
+  return mk_int(i);
 }
 
-AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b) {
-  AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
-  res->kind = AVM_BoolVal;
-  res->bool_value = b;
-  return res;
+inline AVM_value_t new_bool(struct AVM_VM *vm, _Bool b) {
+  (void)vm;
+  return mk_bool(b);
 }
 
-AVM_value_t *new_clos(struct AVM_VM *vm, int l, array_t *penv) {
-  AVM_value_t *res = allocate_object(vm, sizeof(AVM_value_t), AVM_ObjValue);
-  res->kind = AVM_ClosVal;
-  res->clos_value.addr = l;
-  res->clos_value.penv = penv;
-  return res;
+AVM_value_t new_clos(struct AVM_VM *vm, int l, array_t *penv) {
+  AVM_clos_t *clos = allocate_object(vm, sizeof(AVM_clos_t), AVM_ObjClos);
+  clos->addr = l;
+  clos->penv = penv;
+  return mk_obj((AVM_object_t*)clos - 1);
 }
 
 array_t *new_penv(struct AVM_VM *vm) {
-  array_t *res = allocate_object(vm, sizeof(array_t), AVM_ObjPEnv);
-  init_array(res, ARRAY_MINIMAL_CAP);
-  return res;
+  array_t *penv = allocate_object(vm, sizeof(array_t), AVM_ObjPEnv);
+  init_array(penv, ARRAY_MINIMAL_CAP);
+  return penv;
 }
 
 
@@ -82,8 +77,8 @@ void free_object(struct AVM_VM *vm, AVM_object_t* header) {
 #if DEBUG_GC_LOG_LEVEL >= 2
   printf("free_object: %p\n  contents: ", (void*)header);
   switch (header->kind) {
-  case AVM_ObjValue:
-    print_value((AVM_value_t*)(header + 1));
+  case AVM_ObjClos:
+    print_clos((AVM_clos_t*)(header + 1));
     break;
   case AVM_ObjPEnv:
     print_penv((array_t*)(header + 1));
@@ -99,7 +94,7 @@ void free_object(struct AVM_VM *vm, AVM_object_t* header) {
 
   reallocate(vm, header,
              sizeof(AVM_object_t) +
-               (header->kind == AVM_ObjValue ? sizeof(AVM_value_t) : sizeof(array_t)),
+             (header->kind == AVM_ObjClos ? sizeof(AVM_clos_t) : sizeof(array_t)),
              0);
 
   return;
@@ -107,11 +102,11 @@ void free_object(struct AVM_VM *vm, AVM_object_t* header) {
 
 static void mark_penv(struct AVM_VM *vm, array_t *penv);
 
-static void mark_value(struct AVM_VM *vm, AVM_value_t *val) {
-  if (val->kind == AVM_Epsilon)
+static void mark_value(struct AVM_VM *vm, AVM_value_t val) {
+  if (!is_obj(val))
     return;
 
-  AVM_object_t *header = (AVM_object_t*)val - 1;
+  AVM_object_t *header = as_obj(val);
 
   if (header->is_marked)
     return;
@@ -122,8 +117,8 @@ static void mark_value(struct AVM_VM *vm, AVM_value_t *val) {
 
   header->is_marked = true;
 
-  if (val->kind == AVM_ClosVal)
-    mark_penv(vm, val->clos_value.penv);
+  if (header->kind == AVM_ObjClos)
+    mark_penv(vm, ((AVM_clos_t*)(header + 1))->penv);
 }
 
 static void mark_penv(struct AVM_VM *vm, array_t *penv) {
@@ -139,7 +134,7 @@ static void mark_penv(struct AVM_VM *vm, array_t *penv) {
 #endif
 
   for (size_t i = 0; i < array_size(penv); ++i) {
-    mark_value(vm, (AVM_value_t*)array_elem_unsafe(penv, i));
+    mark_value(vm, *(AVM_value_t*)array_elem_unsafe(penv, i));
   }
 }
 
@@ -148,7 +143,7 @@ static void mark(struct AVM_VM *vm) {
   size_t i;
   // Mark vm->astack
   for (i = 0; i < array_size(vm->astack); ++i) {
-    mark_value(vm, (AVM_value_t*)array_elem_unsafe(vm->astack, i));
+    mark_value(vm, *(AVM_value_t*)array_elem_unsafe(vm->astack, i));
   }
   // mark vm->rstack
   for (i = 0; i < array_size(vm->rstack); ++i) {
@@ -157,7 +152,7 @@ static void mark(struct AVM_VM *vm) {
   }
   // mark vm->env
   for (i = 0; i < array_size(vm->env->cache); ++i) {
-    mark_value(vm, (AVM_value_t*)array_elem_unsafe(vm->env->cache, i));
+    mark_value(vm, *(AVM_value_t*)array_elem_unsafe(vm->env->cache, i));
   }
   mark_penv(vm, vm->env->penv);
 }

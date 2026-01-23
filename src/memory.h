@@ -14,7 +14,7 @@ void *reallocate(struct AVM_VM *vm, void *ptr, size_t old_size, size_t new_size)
 
 // Runtime objects
 typedef enum {
-  AVM_ObjValue,
+  AVM_ObjClos,
   AVM_ObjPEnv,
 } AVM_object_kind;
 
@@ -26,13 +26,11 @@ struct AVM_object {
   AVM_object_t *next;
 };
 
-
-
 void *allocate_object(struct AVM_VM *vm, size_t size, AVM_object_kind kind);
 
-AVM_value_t *new_int(struct AVM_VM *vm, int i);
-AVM_value_t *new_bool(struct AVM_VM *vm, _Bool b);
-AVM_value_t *new_clos(struct AVM_VM *vm, int l, array_t *penv);
+AVM_value_t new_int(struct AVM_VM *vm, int i);
+AVM_value_t new_bool(struct AVM_VM *vm, _Bool b);
+AVM_value_t new_clos(struct AVM_VM *vm, int l, array_t *penv);
 array_t *new_penv(struct AVM_VM *vm);
 
 void free_object(struct AVM_VM *vm, AVM_object_t* header);
