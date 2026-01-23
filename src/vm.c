@@ -19,7 +19,7 @@ AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   vm->next_gc = MAX_HEAP_SIZE;    /* 1 MiB */
 
   if (ignite) {
-    apush(vm->astack, &epsilon);
+    apush(vm->astack, epsilon);
     AVM_ret_frame_t *end_frame = malloc(sizeof(AVM_ret_frame_t));
     end_frame->addr = src->instr_size;
     end_frame->offset = 0;

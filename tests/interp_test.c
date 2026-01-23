@@ -10,13 +10,13 @@ static _Bool assert_int(AVM_value_t *v, int expected) {
     return false;
   }
 
-  if (!(v->kind == AVM_IntVal)) {
+  if (!(is_int(*v))) {
     fprintf(stderr, "Expected IntVal.\n");
     return false;
   }
 
-  if (!(v->int_value == expected)) {
-    fprintf(stderr, "Expected %d, but got %d.\n", expected, v->int_value);
+  if (!(as_int(*v) == expected)) {
+    fprintf(stderr, "Expected %d, but got %d.\n", expected, as_int(*v));
     return false;
   }
 
@@ -29,13 +29,13 @@ static _Bool assert_bool(AVM_value_t *v, _Bool expected) {
     return false;
   }
 
-  if (!(v->kind == AVM_BoolVal)) {
+  if (!(is_bool(*v))) {
     fprintf(stderr, "Expected BoolVal.\n");
     return false;
   }
 
-  if (!(v->bool_value == expected)) {
-    fprintf(stderr, "Expected %d, but got %d.\n", expected, v->bool_value);
+  if (!(as_bool(*v) == expected)) {
+    fprintf(stderr, "Expected %d, but got %d.\n", expected, as_int(*v));
     return false;
   }
 

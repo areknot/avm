@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   code->instr[code->instr_size] = HALT();
 
   AVM_VM *vm = init_vm(code, true);
-  AVM_value_t *res = run(vm);
+  AVM_value_t res = run(vm);
 
   printf("Result: ");
   print_value(res);
