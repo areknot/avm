@@ -170,23 +170,22 @@ void remove_head(struct AVM_VM *vm, AVM_env_t *env) {
 }
 
 void print_value(AVM_value_t *val) {
-  switch (val->kind) {
-  case AVM_IntVal:
-    printf("%d", val->int_value);
-    break;
-
-  case AVM_BoolVal:
-    printf("%s", val->bool_value ? "true" : "false");
-    break;
-
-  case AVM_ClosVal:
-    printf("<clos(%d, %p)>", val->clos_value.addr, val->clos_value.penv);
-    break;
-
-  case AVM_Epsilon:
+  AVM_value_t v = *val;
+  if (is_int(v)) {
+    printf("%d", as_int(v));
+  } else if (is_bool(v)) {
+    printf("%s", v == VAL_TRUE ? "true" : "false");
+  } else if (is_obj(v)) {
+    print_clos((AVM_clos_t*)(as_obj(v) + 1));
+  } else if (is_epsilon(v)) {
     printf("<mark>");
-    break;
+  } else {
+    printf("<unknown>");
   }
+}
+
+void print_clos(AVM_clos_t *clos) {
+  printf("<clos(%d, %p)>", clos->addr, clos->penv);
 }
 
 void print_astack(AVM_astack_t *st) {
@@ -217,12 +216,12 @@ void print_env(AVM_env_t *env) {
   printf("[");
   for (size_t i = env->cache->size; i > env->offset; i--) {
     printf(" ");
-    print_value(array_elem(env->cache, i-1));
+    print_value(array_elem_unsafe(env->cache, i-1));
   }
   printf(" |");
   for (size_t i = env->penv->size; i > 0; i--) {
     printf(" ");
-    print_value(array_elem(env->penv, i-1));
+    print_value(array_elem_unsafe(env->penv, i-1));
   }
   printf(" ]");
 }
@@ -231,7 +230,7 @@ void print_penv(array_t *penv) {
   printf("[|");
   for (size_t i = penv->size; i > 0; i--) {
     printf(" ");
-    print_value(array_elem(penv, i-1));
+    print_value(array_elem_unsafe(penv, i-1));
   }
   printf(" ]");
 }

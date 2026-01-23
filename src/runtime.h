@@ -24,7 +24,7 @@ typedef uint64_t AVM_value_t;
 
 #define TAG_MASK    ((uint64_t)0xffff000000000000)
 
-#define TAG_PTR     ((uint64_t)0x7ffc000000000000)
+#define TAG_OBJ     ((uint64_t)0x7ffc000000000000)
 #define TAG_INT     ((uint64_t)0x7ffd000000000000)
 #define TAG_MISC    ((uint64_t)0x7ffe000000000000)
 
@@ -36,37 +36,52 @@ typedef uint64_t AVM_value_t;
 #define VAL_FALSE   (TAG_MISC | TAG_FALSE)
 #define VAL_TRUE    (TAG_MISC | TAG_TRUE)
 
-#define IS_PTR(v)   (((v) & TAG_MASK) == TAG_PTR)
-#define IS_INT(v) (((v) & TAG_MASK) == TAG_INT)
-#define IS_BOOL(v) (((v) | 1) == VAL_TRUE)
-#define IS_EPSILON(v) ((v) == VAL_EPSILON)
+static inline _Bool is_obj(AVM_value_t v) {
+  return ((v & TAG_MASK) == TAG_OBJ);
+}
+
+static inline _Bool is_int(AVM_value_t v) {
+  return ((v & TAG_MASK) == TAG_INT);
+}
+
+static inline _Bool is_bool(AVM_value_t v) {
+  return ((v | 1) == VAL_TRUE);
+}
+
+static inline _Bool is_epsilon(AVM_value_t v) {
+  return (v == VAL_EPSILON);
+}
 
 static inline AVM_value_t mk_int(int v) {
   return TAG_INT | (uint32_t)v;
 }
 
-static inline AVM_value_t mk_ptr(void *p) {
-  return TAG_PTR | (uint64_t)(uintptr_t)p;
+static inline AVM_value_t mk_obj(void *p) {
+  return TAG_OBJ | (uint64_t)(uintptr_t)p;
 }
 
 static inline AVM_value_t mk_bool(_Bool b) {
   return b ? VAL_TRUE : VAL_FALSE;
 }
 
-static inline int val_int(AVM_value_t v) {
+static inline int as_int(AVM_value_t v) {
   return (int)v;
 }
 
-static inline void *val_ptr(AVM_value_t v) {
+struct AVM_object;
+
+static inline struct AVM_object *as_obj(AVM_value_t v) {
   return (void*)(v & 0x0000ffffffffffff);
 }
 
-static inline _Bool val_bool(AVM_value_t v) {
+static inline _Bool as_bool(AVM_value_t v) {
   return v == VAL_TRUE;
 }
 
-
-void print_value(AVM_value_t*);
+typedef struct {
+  int addr;
+  array_t *penv;
+} AVM_clos_t;
 
 AVM_astack_t* init_astack();
 void drop_astack(AVM_astack_t* stack);
@@ -89,6 +104,7 @@ void perpetuate(struct AVM_VM *vm, AVM_env_t *env);
 void remove_head(struct AVM_VM *vm, AVM_env_t *env);
 
 void print_value(AVM_value_t *val);
+void print_clos(AVM_clos_t *clos);
 void print_astack(AVM_astack_t *st);
 void print_rstack(AVM_astack_t *st);
 void print_ret_frame(AVM_ret_frame_t *f);
