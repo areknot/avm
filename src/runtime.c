@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "vm.h"
 #include "debug.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -21,10 +22,12 @@ void drop_astack(AVM_astack_t* stack) {
   drop_array(stack);
 }
 
-AVM_value_t* apop(AVM_astack_t* stp) {
-  AVM_value_t* val = array_last(stp);
+AVM_value_t apop(AVM_astack_t* stp) {
+  AVM_value_t val = (uint64_t)(uintptr_t)array_last(stp);
   int count = pop_array(stp);
-  if (count == 0) return NULL;
+
+  if (count == 0)
+    error("apop: Failed to pop an argument.");
 
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Popped from astack:\n  ");
@@ -37,7 +40,7 @@ AVM_value_t* apop(AVM_astack_t* stp) {
   return val;
 }
 
-_Bool apush(AVM_astack_t* stp, AVM_value_t* val) {
+_Bool apush(AVM_astack_t* stp, AVM_value_t val) {
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Pushed to astack:\n  ");
   print_value(val);
@@ -45,7 +48,7 @@ _Bool apush(AVM_astack_t* stp, AVM_value_t* val) {
   print_astack(stp);
   printf("\n");
 #endif
-  int count = push_array(stp, val);
+  int count = push_array(stp, (void *)(uintptr_t)val);
   return (count != 0);
 }
 
@@ -100,7 +103,7 @@ AVM_env_t* init_env(struct AVM_VM *vm) {
   return new_env;
 }
 
-AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val) {
+AVM_env_t* extend(AVM_env_t *env, AVM_value_t val) {
 #ifdef DEBUG_TRACE_EXECUTION
   printf("Extended env:\n  ");
   print_value(val);
@@ -108,18 +111,16 @@ AVM_env_t* extend(AVM_env_t *env, AVM_value_t *val) {
   print_env(env);
   printf("\n");
 #endif
-  if (push_array(env->cache, val) == 0)
+  if (push_array(env->cache, (void *)(uintptr_t)val) == 0)
     return NULL;
   return env;
 }
 
 #define GET_CURRENT_SIZE(env) ((env)->cache->size - (env)->offset)
 
-AVM_value_t* lookup(AVM_env_t *env, size_t index) {
+AVM_value_t lookup(AVM_env_t *env, size_t index) {
   if (index < GET_CURRENT_SIZE(env)) {
-    AVM_value_t* res = array_elem(env->cache, env->cache->size - index - 1);
-    if (res == NULL)
-      error("lookup: Failed to find the variable %d.", index);
+    AVM_value_t res = (AVM_value_t)(uintptr_t)array_elem(env->cache, env->cache->size - index - 1);
 #ifdef DEBUG_TRACE_EXECUTION
     printf("Found ");
     print_value(res);
@@ -129,9 +130,7 @@ AVM_value_t* lookup(AVM_env_t *env, size_t index) {
 #endif
     return res;
   } else {
-    AVM_value_t* res = array_elem(env->penv, env->penv->size - (index - GET_CURRENT_SIZE(env)) - 1);
-    if (res == NULL)
-      error("lookup: Failed to find the variable %d.", index);
+    AVM_value_t res = (AVM_value_t)(uintptr_t)array_elem(env->penv, env->penv->size - (index - GET_CURRENT_SIZE(env)) - 1);
 #ifdef DEBUG_TRACE_EXECUTION
     printf("Found ");
     print_value(res);
@@ -169,15 +168,14 @@ void remove_head(struct AVM_VM *vm, AVM_env_t *env) {
   env->penv = new_penv(vm);
 }
 
-void print_value(AVM_value_t *val) {
-  AVM_value_t v = *val;
-  if (is_int(v)) {
-    printf("%d", as_int(v));
-  } else if (is_bool(v)) {
-    printf("%s", v == VAL_TRUE ? "true" : "false");
-  } else if (is_obj(v)) {
-    print_clos((AVM_clos_t*)(as_obj(v) + 1));
-  } else if (is_epsilon(v)) {
+void print_value(AVM_value_t val) {
+  if (is_int(val)) {
+    printf("%d", as_int(val));
+  } else if (is_bool(val)) {
+    printf("%s", val == VAL_TRUE ? "true" : "false");
+  } else if (is_obj(val)) {
+    print_clos((AVM_clos_t*)(as_obj(val) + 1));
+  } else if (is_epsilon(val)) {
     printf("<mark>");
   } else {
     printf("<unknown>");
@@ -193,7 +191,7 @@ void print_astack(AVM_astack_t *st) {
   int size = array_size(st);
   for (int i = 1; i <= size; ++i) {
     printf(" ");
-    print_value(array_elem_unsafe(st, size - i));
+    print_value((AVM_value_t)(uintptr_t)array_elem_unsafe(st, size - i));
   }
   printf(" ]");
 }
@@ -216,12 +214,12 @@ void print_env(AVM_env_t *env) {
   printf("[");
   for (size_t i = env->cache->size; i > env->offset; i--) {
     printf(" ");
-    print_value(array_elem_unsafe(env->cache, i-1));
+    print_value((AVM_value_t)(uintptr_t)array_elem_unsafe(env->cache, i-1));
   }
   printf(" |");
   for (size_t i = env->penv->size; i > 0; i--) {
     printf(" ");
-    print_value(array_elem_unsafe(env->penv, i-1));
+    print_value((AVM_value_t)(uintptr_t)array_elem_unsafe(env->penv, i-1));
   }
   printf(" ]");
 }
@@ -230,7 +228,7 @@ void print_penv(array_t *penv) {
   printf("[|");
   for (size_t i = penv->size; i > 0; i--) {
     printf(" ");
-    print_value(array_elem_unsafe(penv, i-1));
+    print_value((AVM_value_t)(uintptr_t)array_elem_unsafe(penv, i-1));
   }
   printf(" ]");
 }
