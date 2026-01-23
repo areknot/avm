@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "runtime.h"
 #include "vm.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -134,7 +135,7 @@ static void mark_penv(struct AVM_VM *vm, array_t *penv) {
 #endif
 
   for (size_t i = 0; i < array_size(penv); ++i) {
-    mark_value(vm, *(AVM_value_t*)array_elem_unsafe(penv, i));
+    mark_value(vm, (AVM_value_t)array_elem_unsafe(penv, i));
   }
 }
 
@@ -143,7 +144,7 @@ static void mark(struct AVM_VM *vm) {
   size_t i;
   // Mark vm->astack
   for (i = 0; i < array_size(vm->astack); ++i) {
-    mark_value(vm, *(AVM_value_t*)array_elem_unsafe(vm->astack, i));
+    mark_value(vm, (AVM_value_t)(uintptr_t)array_elem_unsafe(vm->astack, i));
   }
   // mark vm->rstack
   for (i = 0; i < array_size(vm->rstack); ++i) {
@@ -152,7 +153,7 @@ static void mark(struct AVM_VM *vm) {
   }
   // mark vm->env
   for (i = 0; i < array_size(vm->env->cache); ++i) {
-    mark_value(vm, *(AVM_value_t*)array_elem_unsafe(vm->env->cache, i));
+    mark_value(vm, (AVM_value_t)(uintptr_t)array_elem_unsafe(vm->env->cache, i));
   }
   mark_penv(vm, vm->env->penv);
 }
