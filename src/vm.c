@@ -5,8 +5,7 @@
 #include "runtime.h"
 #include <stdlib.h>
 
-AVM_value_t epsilon = { .kind = AVM_Epsilon };
-
+AVM_value_t epsilon = VAL_EPSILON;
 
 AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   AVM_VM *vm = malloc(sizeof(AVM_VM));
