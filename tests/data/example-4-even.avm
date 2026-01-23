@@ -1,0 +1,41 @@
+; let rec even = function
+;   | 0 -> true
+;   | n -> odd (n - 1)
+; and odd = function
+;   | 0 -> false
+;   | n -> even (n - 1)
+; in even 21
+main:
+    mark
+    load 21
+    clos even
+    app
+    ret
+
+even:
+    acc 0
+    load 0
+    eq
+    bf even_nonzero
+    load true
+    ret
+even_nonzero:
+    acc 0
+    load 1
+    sub
+    clos odd
+    tapp
+
+odd:
+    acc 0
+    load 0
+    eq
+    bf odd_nonzero
+    load false
+    ret
+odd_nonzero:
+    acc 0
+    load 1
+    sub
+    clos even    
+    tapp
