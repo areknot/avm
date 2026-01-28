@@ -1,34 +1,43 @@
 # Transition table
 
 - `pc`: program counter
+- `a`: accumulator
 - `env`: environment
 - `s`: argument stack
 - `r`: return stack
 - `e`: special symbol to separate arguments
 
-| Code[pc] |   Env. |     Arg. stack |  Ret. stack | Next pc |               Env. |    Arg. stack |    Ret. stack |
-|:---------|-------:|---------------:|------------:|:--------|-------------------:|--------------:|--------------:|
-| load n   |    env |              s |           r | pc++    |                env |          n::s |             r |
-| load b   |    env |              s |           r | pc++    |                env |          b::s |             r |
-| acc i    |    env |              s |           r | pc++    |                env |     env[i]::s |             r |
-| clos l   |    env |              s |           r | pc++    |                env |    <l,env>::s |             r |
-| let      |    env |           v::s |           r | pc++    |             v::env |             s |             r |
-| endlet   | v::env |              s |           r | pc++    |                env |             s |             r |
-| b l      |    env |              s |           r | l       |                env |             s |             r |
-| bf l     |    env |        true::s |           r | pc++    |                env |             s |             r |
-| bf l     |    env |       false::s |           r | l       |                env |             s |             r |
-| add      |    env |      n1::n2::s |           r | pc++    |                env |    (n1+n2)::s |             r |
-| eq       |    env |      n1::n2::s |           r | pc++    |                env |   (n1==n2)::s |             r |
-| app      |    env | <l,env'>::v::s |           r | l       |  v::<l,env'>::env' |             s | <pc++,env>::r |
-| tapp     |    env | <l,env'>::v::s |           r | l       |  v::<l,env'>::env' |             s |             r |
-| mark     |    env |              s |           r | pc++    |                env |          e::s |             r |
-| grab     |    env |           e::s | <l,env'>::r | l       |               env' | <pc++,env>::s |             r |
-| grab     |    env |           v::s |           r | pc++    | v::<pc++,env>::env |             s |             r |
-| ret      |    env |        v::e::s | <l,env'>::r | l       |               env' |          v::s |             r |
-| ret      |    env | <l,env'>::v::s |           r | l       |  v::<l,env'>::env' |             s |             r |
+| Code[pc] |  Accu.   |      Env. | Arg. stack |  Ret. stack | Next pc |    Acc.    |         Env. | Arg. stack |    Ret. stack |
+|:---------|:--------:|----------:|-----------:|------------:|:--------|:----------:|-------------:|-----------:|--------------:|
+| push     |    a     |       env |          s |           r | pc++    |     a      |          env |       a::s |             r |
+| load n   |    a     |       env |          s |           r | pc++    |     n      |          env |          s |             r |
+| load b   |    a     |       env |          s |           r | pc++    |     b      |          env |          s |             r |
+| acc  i   |    a     |       env |          s |           r | pc++    |   env[i]   |          env |          s |             r |
+| clos l   |    a     |       env |          s |           r | pc++    |  <l,env>   |          env |          s |             r |
+| let      |    v     |       env |          s |           r | pc++    |     v      |       v::env |          s |             r |
+| endlet   |    a     |    v::env |          s |           r | pc++    |     a      |          env |          s |             r |
+| b  l     |    a     |       env |          s |           r | l       |     a      |          env |          s |             r |
+| bf l     |   true   |       env |          s |           r | pc++    |    true    |          env |          s |             r |
+| bf l     |  false   |       env |          s |           r | l       |   false    |          env |          s |             r |
+| add      |    n1    |       env |      n2::s |           r | pc++    |   n1+n2    |          env |          s |             r |
+| eq       |    n1    |       env |      n2::s |           r | pc++    |   n1=n2    |          env |          s |             r |
+| app      | <l,env'> |       env |       v::s |           r | l       |  <l,env'>  |      v::env' |          s | <pc++,env>::r |
+| tapp     | <l,env'> |       env |       v::s |           r | l       |  <l,env'>  |      v::env' |          s |             r |
+| mark     |    a     |       env |          s |           r | pc++    |     a      |          env |       e::s |             r |
+| grab     |    a     |       env |       e::s | <l,env'>::r | l       | <pc++,env> |         env' |          s |             r |
+| grab     |    a     |       env |       v::s |           r | pc++    |     a      |       v::env |          s |             r |
+| ret      |    a     |       env |       e::s | <l,env'>::r | l       |     a      |         env' |          s |             r |
+| ret      | <l,env'> |       env |       v::s |           r | l       |  <l,env'>  |      v::env' |          s |             r |
+| dum      |    a     |       env |          s |           r | pc++    |     a      |    <?,?>:env |          s |             r |
+| upd      | <l,env'> | <?,?>:env |          s |           r | pc++    |  <l,env'>  | <l,env'>:env |          s |             r |
 
+**Remark.** One may feel weird about the first transition rule of `ret` at the first glance. In fact, it works: the accumulator, which serves as a cache of the top element of the argument stack, represents the return-value. In the formulation without accumulator, we stored the return-value in the stack. When returning a value, we pop the top, see that the next element is ϵ, and push the return-value back to the stack. Using the new formulation, we just leave the accumulator untouched to achieve the same effect.
+
+**Remark.** Now recursion is implemented by `dum` and `upd` (corresponding to *Dummy* and *Update* in Section 3.3.4, Leroy1990). The only difference with Leroy's implementation is that we restrict the dummy to be a closure. This is necessary as we cannot modify atomic data stored in environment (due to the copy of environment), and is reasonable for the current AVM. When we add compound data types, we may need to extend the transition table.
 
 ## Pseudo-compilation of ML subset to AVM
+
+**Todo.** Update the compiler to support the accumulator.
 
 ```
 C(fun x -> e, venv) = Closure(l) ... l:T(e, x :: _ :: venv)
