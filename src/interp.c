@@ -1,11 +1,13 @@
 
 #include "array.h"
+#include "code.h"
 #include "debug.h"
 #include "interp.h"
 #include "memory.h"
 #include "runtime.h"
 #include "vm.h"
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,274 +39,314 @@ AVM_value_t *_run_code_with_result(AVM_code_t *src) {
   return res_;
 }
 
+void print_instr(AVM_VM* vm) {
+  printf("\n");
+  int pc = vm->pc == 0 ? 0 : vm->pc - 1;
+  disassemble_instruction(vm->code, pc);
+}
+
 AVM_value_t run(AVM_VM* vm) {
-  while (true) {
+
+  static void* dispatch_table[] = {
+    [AVM_Ldi]       = &&OP_AVM_Ldi,
+    [AVM_Ldb]       = &&OP_AVM_Ldb,
+    [AVM_Access]    = &&OP_AVM_Access,
+    [AVM_Closure]   = &&OP_AVM_Closure,
+    [AVM_Let]       = &&OP_AVM_Let,
+    [AVM_EndLet]    = &&OP_AVM_EndLet,
+    [AVM_Jump]      = &&OP_AVM_Jump,
+    [AVM_CJump]     = &&OP_AVM_CJump,
+    [AVM_Add]       = &&OP_AVM_Add,
+    [AVM_Sub]       = &&OP_AVM_Sub,
+    [AVM_Le]        = &&OP_AVM_Le,
+    [AVM_Eq]        = &&OP_AVM_Eq,
+    [AVM_Apply]     = &&OP_AVM_Apply,
+    [AVM_TailApply] = &&OP_AVM_TailApply,
+    [AVM_PushMark]  = &&OP_AVM_PushMark,
+    [AVM_Grab]      = &&OP_AVM_Grab,
+    [AVM_Return]    = &&OP_AVM_Return,
+    [AVM_Halt]      = &&OP_AVM_Halt,
+  };
+
+  AVM_instr_t* instr = NULL;
+#define DISPATCH()                                        \
+  do {                                                    \
+    instr = vm->code->instr + vm->pc;                     \
+    goto *dispatch_table[vm->code->instr[vm->pc++].kind]; \
+} while (0)
+  /* Debug is disabled now. */
 #ifdef DEBUG_TRACE_EXECUTION
-    printf("\n");
-    disassemble_instruction(vm->code, vm->pc);
+#define DEBUG_MESSAGE() print_instr(vm)
+#else
+#define DEBUG_MESSAGE()
 #endif
 
-    AVM_instr_t *instr = vm->code->instr + vm->pc;
-    vm->pc++;
+  DISPATCH();
+  
+ OP_AVM_Ldi:
+  DEBUG_MESSAGE();
+  if (!apush(vm->astack, new_int(vm, instr->const_int)))
+    error("AVM_Ldi: Couldn't push %d.", instr->const_int);
+  DISPATCH();
 
-    switch (instr->kind) {
-    case AVM_Ldi:
-      if (!apush(vm->astack, new_int(vm, instr->const_int)))
-        error("AVM_Ldi: Couldn't push %d.", instr->const_int);
-      break;
+ OP_AVM_Ldb:
+  DEBUG_MESSAGE();
+  if (!apush(vm->astack, new_bool(vm, instr->const_bool)))
+    error("AVM_Ldb: Couldn't push %s.", instr->const_bool ? "true" : "false");
+  DISPATCH();
 
-    case AVM_Ldb:
-      if (!apush(vm->astack, new_bool(vm, instr->const_bool)))
-        error("AVM_Ldb: Couldn't push %s.", instr->const_bool ? "true" : "false");
-      break;
+ OP_AVM_Access: {
+    DEBUG_MESSAGE();
+    /* To be confirmed: `lookup` is total? */
+    AVM_value_t val = lookup(vm->env, instr->access);
+    if (!apush(vm->astack, val))
+      error("AVM_Access: Couldn't push the found value.");
+    DISPATCH();
+  }
 
-    case AVM_Access: {
-      AVM_value_t val = lookup(vm->env, instr->access);
+ OP_AVM_Closure: {
+    DEBUG_MESSAGE();
+    perpetuate(vm, vm->env);
+    AVM_value_t clos = new_clos(vm, instr->addr, vm->env->penv);
+    if (!apush(vm->astack, clos))
+      error("AVM_CLosure: Couldn't push the closure.");
+    DISPATCH();
+  }
 
-      if (!apush(vm->astack, val))
-        error("AVM_Access: Couldn't push the found value.");
+ OP_AVM_Let:
+  DEBUG_MESSAGE();
+  vm->env = extend(vm->env, apop(vm->astack));
+  if (vm->env == NULL)
+    error("AVM_Let: Couldn't extend the environment.");
+  DISPATCH();
 
-      break;
-    }
+ OP_AVM_EndLet:
+  DEBUG_MESSAGE();
+  remove_head(vm, vm->env);
+  DISPATCH();
 
-    case AVM_Closure: {
-      perpetuate(vm, vm->env);
-      AVM_value_t clos = new_clos(vm, instr->addr, vm->env->penv);
+ OP_AVM_Jump:
+  DEBUG_MESSAGE();
+  vm->pc = instr->addr;
+  DISPATCH();
 
-      if (!apush(vm->astack, clos))
-        error("AVM_CLosure: Couldn't push the closure.");
-      break;
-
-    }
-
-
-    case AVM_Let: {
-      vm->env = extend(vm->env, apop(vm->astack));
-      if (vm->env == NULL)
-        error("AVM_Let: Couldn't extend the environment.");
-
-      break;
-    }
-
-    case AVM_EndLet:
-      remove_head(vm, vm->env);
-      break;
-
-    case AVM_Jump:
+ OP_AVM_CJump: {
+    DEBUG_MESSAGE();
+    AVM_value_t val = apop(vm->astack);
+    if (!is_bool(val)) {
+      error("AVM_CJump: Expected a bool value.");
+    } else if (!as_bool(val)) {
       vm->pc = instr->addr;
-      break;
+    }
+    DISPATCH();
+  }
 
-    case AVM_CJump: {
-      AVM_value_t val = apop(vm->astack);
-      if (!is_bool(val)) {
-        error("AVM_CJump: Expected a bool value.");
-      } else if (!as_bool(val)) {
-        vm->pc = instr->addr;
-      }
-      break;
+ OP_AVM_Add: {
+    DEBUG_MESSAGE();
+    AVM_value_t val1 = apop(vm->astack);
+    AVM_value_t val2 = apop(vm->astack);
+
+    if (!is_int(val1) || !is_int(val2)) {
+      error("AVM_Add: Expected two integer values.");
     }
 
-    case AVM_Add: {
-      AVM_value_t val1 = apop(vm->astack);
-      AVM_value_t val2 = apop(vm->astack);
+    if (!apush(vm->astack, new_int(vm, as_int(val1) + as_int(val2)))) // x + y
+      error("AVM_Add: Couldn't push the result.");
+    DISPATCH();
+  }
 
-      if (!is_int(val1) || !is_int(val2)) {
-        error("AVM_Add: Expected two integer values.");
-      }
+ OP_AVM_Sub: {
+    DEBUG_MESSAGE();
+    AVM_value_t val1 = apop(vm->astack); // y
+    AVM_value_t val2 = apop(vm->astack); // x
 
-      if (!apush(vm->astack, new_int(vm, as_int(val1) + as_int(val2)))) // x + y
-        error("AVM_Add: Couldn't push the result.");
-      break;
+    if (!is_int(val1) || !is_int(val2)) {
+      error("AVM_Sub: Expected two integer values.");
     }
 
-    case AVM_Sub: {
-      AVM_value_t val1 = apop(vm->astack); // y
-      AVM_value_t val2 = apop(vm->astack); // x
+    if (!apush(vm->astack, new_int(vm, as_int(val2) - as_int(val1)))) // x - y
+      error("AVM_Sub: Couldn't push the result.");
+    DISPATCH();
+  }
 
-      if (!is_int(val1) || !is_int(val2)) {
-        error("AVM_Sub: Expected two integer values.");
-      }
+ OP_AVM_Le: {
+    DEBUG_MESSAGE();
+    AVM_value_t val1 = apop(vm->astack); // y
+    AVM_value_t val2 = apop(vm->astack); // x
 
-      if (!apush(vm->astack, new_int(vm, as_int(val2) - as_int(val1)))) // x - y
-        error("AVM_Sub: Couldn't push the result.");
-      break;
+    if (!is_int(val1) || !is_int(val2)) {
+      error("AVM_Le: Expected two integer values.");
     }
 
-    case AVM_Le: {
-      AVM_value_t val1 = apop(vm->astack); // y
-      AVM_value_t val2 = apop(vm->astack); // x
+    if (!apush(vm->astack, new_bool(vm, as_int(val2) <= as_int(val1)))) // x <= y
+      error("AVM_Le: Couldn't push the result.");
+    DISPATCH();
+  }
 
-      if (!is_int(val1) || !is_int(val2)) {
-        error("AVM_Le: Expected two integer values.");
-      }
+ OP_AVM_Eq: {
+    DEBUG_MESSAGE();
+    AVM_value_t val1 = apop(vm->astack);
+    AVM_value_t val2 = apop(vm->astack);
 
-      if (!apush(vm->astack, new_bool(vm, as_int(val2) <= as_int(val1)))) // x <= y
-        error("AVM_Le: Couldn't push the result.");
-      break;
+    if (!is_int(val1) || !is_int(val2)) {
+      error("AVM_Eq: Expected two integer values.");
     }
 
-    case AVM_Eq: {
-      AVM_value_t val1 = apop(vm->astack);
-      AVM_value_t val2 = apop(vm->astack);
+    if (!apush(vm->astack, new_bool(vm, as_int(val1) == as_int(val2)))) // x == y
+      error("AVM_Eq: Couldn't push the result.");
+    DISPATCH();
+  }
 
-      if (!is_int(val1) || !is_int(val2)) {
-        error("AVM_Eq: Expected two integer values.");
-      }
+ OP_AVM_Apply: {
+    DEBUG_MESSAGE();
+    // Pop a function and an argument from astack.
+    AVM_value_t func = apop(vm->astack);
+    AVM_value_t arg = apop(vm->astack);
 
-      if (!apush(vm->astack, new_bool(vm, as_int(val1) == as_int(val2)))) // x == y
-        error("AVM_Eq: Couldn't push the result.");
-      break;
+    AVM_object_t *obj = as_obj(func);
+
+    if (!is_obj(func) || obj->kind != AVM_ObjClos) {
+      error("AVM_Apply: Expected function application.");
     }
 
-    case AVM_Apply: {
-      // Pop a function and an argument from astack.
-      AVM_value_t func = apop(vm->astack);
-      AVM_value_t arg = apop(vm->astack);
+    AVM_clos_t *clos = (AVM_clos_t*)(obj + 1);
 
-      AVM_object_t *obj = as_obj(func);
+    // Push the current address and the environment to rstack.
+    AVM_ret_frame_t *new_frame = malloc(sizeof(AVM_ret_frame_t));
+    new_frame->addr = vm->pc;
+    new_frame->penv = vm->env->penv;
+    new_frame->offset = vm->env->offset;
+    if (!rpush(vm->rstack, new_frame))
+      error("AVM_Apply: Couldn't push the return address");
 
-      if (!is_obj(func) || obj->kind != AVM_ObjClos) {
-        error("AVM_Apply: Expected function application.");
-      }
+    // Extend the environment.
+    vm->env->offset = vm->env->cache->size;
+    vm->env->penv = clos->penv;
+    if (extend(vm->env, func) == NULL)
+      error("AVM_Apply: Couldn't extend the environment.");
+    if (extend(vm->env, arg) == NULL)
+      error("AVM_Apply: Couldn't extend the environment.");
 
-      AVM_clos_t *clos = (AVM_clos_t*)(obj + 1);
+    // Jump to the given address.
+    vm->pc = clos->addr;
+    DISPATCH();
+  }
 
-      // Push the current address and the environment to rstack.
-      AVM_ret_frame_t *new_frame = malloc(sizeof(AVM_ret_frame_t));
-      new_frame->addr = vm->pc;
-      new_frame->penv = vm->env->penv;
-      new_frame->offset = vm->env->offset;
-      if (!rpush(vm->rstack, new_frame))
-        error("AVM_Apply: Couldn't push the return address");
+ OP_AVM_TailApply: {
+    DEBUG_MESSAGE();
+    // Pop a function and an argument from astack.
+    AVM_value_t func = apop(vm->astack);
+    AVM_value_t arg = apop(vm->astack);
 
-      // Extend the environment.
-      vm->env->offset = vm->env->cache->size;
-      vm->env->penv = clos->penv;
-      if (extend(vm->env, func) == NULL)
-        error("AVM_Apply: Couldn't extend the environment.");
+    AVM_object_t *obj = as_obj(func);
+
+    if (!is_obj(func) || obj->kind != AVM_ObjClos) {
+      error("AVM_Apply: Expected function application.");
+    }
+
+    AVM_clos_t *clos = (AVM_clos_t*)(obj + 1);
+
+    // Extend the environment.
+    /* vm->env->offset = vm->env->cache.size; */
+    pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
+    vm->env->penv = clos->penv;
+    if (extend(vm->env, func) == NULL)
+      error("AVM_Apply: Couldn't extend the environment.");
+    if (extend(vm->env, arg) == NULL)
+      error("AVM_Apply: Couldn't extend the environment.");
+
+    // Jump to the given address.
+    vm->pc = clos->addr;
+    DISPATCH();
+  }
+
+ OP_AVM_PushMark:
+  DEBUG_MESSAGE();
+  if (!apush(vm->astack, epsilon))
+    error("AVM_PushMark: Couldn't push the mark.");
+  DISPATCH();
+
+ OP_AVM_Grab: {
+    DEBUG_MESSAGE();
+    // Pop an argument.
+    AVM_value_t arg = apop(vm->astack);
+
+    if (is_epsilon(arg)) {
+      // Push the current address to astack.
+      perpetuate(vm, vm->env);
+      AVM_value_t tmp = new_clos(vm, vm->pc, vm->env->penv);
+      if (!apush(vm->astack, tmp))
+	error("AVM_Grab: Couldn't push the current address.");
+
+      // Get the caller's address.
+      AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
+      if (ret_frame == NULL)
+	error("AVM_Grab: Couldn't get the caller's address.");
+
+      // Jump back to the caller.
+      vm->pc = ret_frame->addr;
+      vm->env->penv = ret_frame->penv;
+      vm->env->offset = ret_frame->offset;
+
+      free(ret_frame);
+    } else {
+      // Extend the current environment and continue.
+      /* perpetuate(vm->env); */
+      /* AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env); */
+      /* if (tmp == NULL) */
+      /*   error("AVM_Grab: Couldn't create a new closure."); */
+      // Note: we do NOT allow recursive call to curried function.
+      if (extend(vm->env, epsilon) == NULL)
+	error("AVM_Grab: Couldn't extend the environment.");
       if (extend(vm->env, arg) == NULL)
-        error("AVM_Apply: Couldn't extend the environment.");
-
-      // Jump to the given address.
-      vm->pc = clos->addr;
-      break;
+	error("AVM_Grab: Couldn't extend the environment.");
     }
+    DISPATCH();
+  }
 
-    case AVM_TailApply: {
-      // Pop a function and an argument from astack.
-      AVM_value_t func = apop(vm->astack);
-      AVM_value_t arg = apop(vm->astack);
+ OP_AVM_Return: {
+    DEBUG_MESSAGE();
+    // Pop two arguments.
+    AVM_value_t arg1 = apop(vm->astack);
+    AVM_value_t arg2 = apop(vm->astack);
+    AVM_object_t *obj;
 
-      AVM_object_t *obj = as_obj(func);
+    if (is_epsilon(arg2)) {
+      // Push the first argument to astack.
+      if (!apush(vm->astack, arg1))
+	error("AVM_Return: Couldn't push the result to the argument stack.");
 
-      if (!is_obj(func) || obj->kind != AVM_ObjClos) {
-        error("AVM_Apply: Expected function application.");
-      }
+      // Get the caller's address.
+      AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
+      if (ret_frame == NULL)
+	error("AVM_Return: Couldn't get the caller's address.");
 
+      // Jump back to the caller.
+      vm->pc = ret_frame->addr;
+      vm->env->penv = ret_frame->penv;
+      pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
+      vm->env->offset = ret_frame->offset;
+      free(ret_frame);
+    } else if ((obj = as_obj(arg1)) || obj->kind != AVM_ObjClos) {
+      error("AVM_Return: Invalid return address.");
+    } else {
       AVM_clos_t *clos = (AVM_clos_t*)(obj + 1);
 
-      // Extend the environment.
-      /* vm->env->offset = vm->env->cache.size; */
+      /* Pop all the contents of the current cache, change the penv to that of arg1,
+	 and extend the environment. */
       pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
       vm->env->penv = clos->penv;
-      if (extend(vm->env, func) == NULL)
-        error("AVM_Apply: Couldn't extend the environment.");
-      if (extend(vm->env, arg) == NULL)
-        error("AVM_Apply: Couldn't extend the environment.");
-
-      // Jump to the given address.
+      if (extend(vm->env, arg1) == NULL)
+	error("AVM_Return: Couldn't extend the environment.");
+      if (extend(vm->env, arg2) == NULL)
+	error("AVM_Grab: Couldn't extend the environment.");
       vm->pc = clos->addr;
-      break;
     }
+    DISPATCH();
+  }
 
-    case AVM_PushMark:
-      if (!apush(vm->astack, epsilon))
-        error("AVM_PushMark: Couldn't push the mark.");
-      break;
-
-    case AVM_Grab: {
-      // Pop an argument.
-      AVM_value_t arg = apop(vm->astack);
-
-      if (is_epsilon(arg)) {
-        // Push the current address to astack.
-        perpetuate(vm, vm->env);
-        AVM_value_t tmp = new_clos(vm, vm->pc, vm->env->penv);
-        if (!apush(vm->astack, tmp))
-          error("AVM_Grab: Couldn't push the current address.");
-
-        // Get the caller's address.
-        AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
-        if (ret_frame == NULL)
-          error("AVM_Grab: Couldn't get the caller's address.");
-
-        // Jump back to the caller.
-        vm->pc = ret_frame->addr;
-        vm->env->penv = ret_frame->penv;
-        vm->env->offset = ret_frame->offset;
-
-        free(ret_frame);
-      } else {
-        // Extend the current environment and continue.
-        /* perpetuate(vm->env); */
-        /* AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env); */
-        /* if (tmp == NULL) */
-        /*   error("AVM_Grab: Couldn't create a new closure."); */
-        // Note: we do NOT allow recursive call to curried function.
-        if (extend(vm->env, epsilon) == NULL)
-          error("AVM_Grab: Couldn't extend the environment.");
-        if (extend(vm->env, arg) == NULL)
-          error("AVM_Grab: Couldn't extend the environment.");
-      }
-      break;
-    }
-
-    case AVM_Return: {
-      // Pop two arguments.
-      AVM_value_t arg1 = apop(vm->astack);
-      AVM_value_t arg2 = apop(vm->astack);
-      AVM_object_t *obj;
-
-      if (is_epsilon(arg2)) {
-        // Push the first argument to astack.
-        if (!apush(vm->astack, arg1))
-          error("AVM_Return: Couldn't push the result to the argument stack.");
-
-        // Get the caller's address.
-        AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
-        if (ret_frame == NULL)
-          error("AVM_Return: Couldn't get the caller's address.");
-
-        // Jump back to the caller.
-        vm->pc = ret_frame->addr;
-        vm->env->penv = ret_frame->penv;
-        pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
-        vm->env->offset = ret_frame->offset;
-        free(ret_frame);
-      } else if ((obj = as_obj(arg1)) || obj->kind != AVM_ObjClos) {
-          error("AVM_Return: Invalid return address.");
-        } else {
-          AVM_clos_t *clos = (AVM_clos_t*)(obj + 1);
-
-          /* Pop all the contents of the current cache, change the penv to that of arg1,
-             and extend the environment. */
-          pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
-          vm->env->penv = clos->penv;
-          if (extend(vm->env, arg1) == NULL)
-            error("AVM_Return: Couldn't extend the environment.");
-          if (extend(vm->env, arg2) == NULL)
-            error("AVM_Grab: Couldn't extend the environment.");
-          vm->pc = clos->addr;
-        }
-      break;
-    }
-
-    case AVM_Halt: {
-      AVM_value_t res =  apop(vm->astack);
-
-      return res;
-    }
-
-    }
+ OP_AVM_Halt: {
+    AVM_value_t res = apop(vm->astack);
+    return res;
   }
 }
