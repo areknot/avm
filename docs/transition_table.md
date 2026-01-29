@@ -12,7 +12,7 @@
   - `n⁺`: Positive natural number
 - `l`: Label (address)
 
-| Code[pc] |  Accu.   |      Env. | Arg. stack |  Ret. stack | Next pc |    Acc.    |              Env. | Arg. stack |    Ret. stack |
+| Code[pc] |  Accu.   |      Env. | Arg. stack |  Ret. stack | Next pc |   Accu.    |              Env. | Arg. stack |    Ret. stack |
 |:---------|:--------:|----------:|-----------:|------------:|:--------|:----------:|------------------:|-----------:|--------------:|
 | push     |    a     |       env |          s |           r | pc++    |     a      |               env |       a::s |             r |
 | load i   |    a     |       env |          s |           r | pc++    |     i      |               env |          s |             r |

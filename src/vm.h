@@ -9,6 +9,7 @@
 typedef struct AVM_VM {
   AVM_code_t *code;
   int pc;
+  AVM_value_t accu;
   AVM_astack_t *astack;
   AVM_rstack_t *rstack;
   AVM_env_t *env;

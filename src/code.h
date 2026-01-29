@@ -3,12 +3,12 @@
 #include <stdbool.h>
 
 typedef enum {
-  AVM_Ldi     , AVM_Ldb       , AVM_Access   ,
-  AVM_Closure , AVM_Let       , AVM_EndLet   ,
-  AVM_Jump    , AVM_CJump     , AVM_Add      ,
-  AVM_Sub     , AVM_Le        , AVM_Eq       ,
-  AVM_Apply   , AVM_TailApply , AVM_PushMark ,
-  AVM_Grab    , AVM_Return    , AVM_Halt
+  AVM_Push    , AVM_Ldi    , AVM_Ldb       , AVM_Access   ,
+  AVM_Closure , AVM_Let    , AVM_EndLet    , AVM_Jump     ,
+  AVM_CJump   , AVM_Add    , AVM_Sub       , AVM_Le       ,
+  AVM_Eq      , AVM_Apply  , AVM_TailApply , AVM_PushMark ,
+  AVM_Grab    , AVM_Return , AVM_Dummies   , AVM_Update   ,
+  AVM_Halt
 } AVM_instr_kind;
 
 struct AVM_instr;
@@ -18,7 +18,7 @@ typedef struct AVM_instr {
   AVM_instr_kind   kind;
   int              const_int;
   _Bool            const_bool;
-  int              access;
+  int              access;	/* Access, Dummies, Update */
   int              addr; // for Closure and Jumps
   void*            payload;
 } AVM_instr_t;

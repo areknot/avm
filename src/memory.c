@@ -141,6 +141,7 @@ static void mark_penv(struct AVM_VM *vm, array_t *penv) {
 
 
 static void mark(struct AVM_VM *vm) {
+  mark_value(vm, vm->accu);
   size_t i;
   // Mark vm->astack
   for (i = 0; i < array_size(vm->astack); ++i) {

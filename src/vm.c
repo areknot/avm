@@ -12,6 +12,7 @@ AVM_VM* init_vm(AVM_code_t *src, _Bool ignite) {
   vm->code = src;
   vm->pc = 0;
   vm->objs = NULL;
+  vm->accu = 0;
   vm->astack = init_astack();
   vm->rstack = init_rstack();
   vm->env = init_env(vm);

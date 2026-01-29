@@ -45,9 +45,11 @@ void print_instr(AVM_VM* vm) {
   disassemble_instruction(vm->code, pc);
 }
 
+/* Note that `vm->accu` will only be updated before a potential GC. */
 AVM_value_t run(AVM_VM* vm) {
 
   static void* dispatch_table[] = {
+    [AVM_Push]      = &&OP_AVM_Push,
     [AVM_Ldi]       = &&OP_AVM_Ldi,
     [AVM_Ldb]       = &&OP_AVM_Ldb,
     [AVM_Access]    = &&OP_AVM_Access,
@@ -65,10 +67,14 @@ AVM_value_t run(AVM_VM* vm) {
     [AVM_PushMark]  = &&OP_AVM_PushMark,
     [AVM_Grab]      = &&OP_AVM_Grab,
     [AVM_Return]    = &&OP_AVM_Return,
+    [AVM_Dummies]   = &&OP_AVM_Dummies,
+    [AVM_Update]    = &&OP_AVM_Update,
     [AVM_Halt]      = &&OP_AVM_Halt,
   };
 
   AVM_instr_t* instr = NULL;
+  register AVM_value_t  accu  = 0;
+  
 #define DISPATCH()                                        \
   do {                                                    \
     instr = vm->code->instr + vm->pc;                     \
@@ -82,40 +88,40 @@ AVM_value_t run(AVM_VM* vm) {
 #endif
 
   DISPATCH();
+
+ OP_AVM_Push:
+  DEBUG_MESSAGE();
+  if (!apush(vm->astack, accu))
+    error("AVM_Push: Couldn't push %X.", accu);
+  DISPATCH();
   
  OP_AVM_Ldi:
   DEBUG_MESSAGE();
-  if (!apush(vm->astack, new_int(vm, instr->const_int)))
-    error("AVM_Ldi: Couldn't push %d.", instr->const_int);
+  accu = new_int(vm, instr->const_int);
   DISPATCH();
 
  OP_AVM_Ldb:
   DEBUG_MESSAGE();
-  if (!apush(vm->astack, new_bool(vm, instr->const_bool)))
-    error("AVM_Ldb: Couldn't push %s.", instr->const_bool ? "true" : "false");
+  accu = new_bool(vm, instr->const_bool);
   DISPATCH();
 
- OP_AVM_Access: {
-    DEBUG_MESSAGE();
-    /* To be confirmed: `lookup` is total? */
-    AVM_value_t val = lookup(vm->env, instr->access);
-    if (!apush(vm->astack, val))
-      error("AVM_Access: Couldn't push the found value.");
-    DISPATCH();
-  }
+ OP_AVM_Access: 
+  DEBUG_MESSAGE();
+  /* To be confirmed: `lookup` is total? */
+  accu = lookup(vm->env, instr->access);
+  DISPATCH();
+  
 
- OP_AVM_Closure: {
-    DEBUG_MESSAGE();
-    perpetuate(vm, vm->env);
-    AVM_value_t clos = new_clos(vm, instr->addr, vm->env->penv);
-    if (!apush(vm->astack, clos))
-      error("AVM_CLosure: Couldn't push the closure.");
-    DISPATCH();
-  }
+ OP_AVM_Closure: 
+  DEBUG_MESSAGE();
+  vm->accu = accu;
+  perpetuate(vm, vm->env);
+  accu = new_clos(vm, instr->addr, vm->env->penv);
+  DISPATCH();
 
  OP_AVM_Let:
   DEBUG_MESSAGE();
-  vm->env = extend(vm->env, apop(vm->astack));
+  vm->env = extend(vm->env, accu);
   if (vm->env == NULL)
     error("AVM_Let: Couldn't extend the environment.");
   DISPATCH();
@@ -130,77 +136,70 @@ AVM_value_t run(AVM_VM* vm) {
   vm->pc = instr->addr;
   DISPATCH();
 
- OP_AVM_CJump: {
-    DEBUG_MESSAGE();
-    AVM_value_t val = apop(vm->astack);
-    if (!is_bool(val)) {
-      error("AVM_CJump: Expected a bool value.");
-    } else if (!as_bool(val)) {
-      vm->pc = instr->addr;
-    }
-    DISPATCH();
+ OP_AVM_CJump: 
+  DEBUG_MESSAGE();
+  if (!is_bool(accu)) {
+    error("AVM_CJump: Expected a bool value.");
+  } else if (!as_bool(accu)) {
+    vm->pc = instr->addr;
   }
+  DISPATCH();
 
  OP_AVM_Add: {
     DEBUG_MESSAGE();
-    AVM_value_t val1 = apop(vm->astack);
+    AVM_value_t val1 = accu;
     AVM_value_t val2 = apop(vm->astack);
 
     if (!is_int(val1) || !is_int(val2)) {
       error("AVM_Add: Expected two integer values.");
     }
 
-    if (!apush(vm->astack, new_int(vm, as_int(val1) + as_int(val2)))) // x + y
-      error("AVM_Add: Couldn't push the result.");
+    accu = new_int(vm, as_int(val1) + as_int(val2));
     DISPATCH();
   }
 
  OP_AVM_Sub: {
     DEBUG_MESSAGE();
     AVM_value_t val1 = apop(vm->astack); // y
-    AVM_value_t val2 = apop(vm->astack); // x
+    AVM_value_t val2 = accu; // x
 
     if (!is_int(val1) || !is_int(val2)) {
       error("AVM_Sub: Expected two integer values.");
     }
 
-    if (!apush(vm->astack, new_int(vm, as_int(val2) - as_int(val1)))) // x - y
-      error("AVM_Sub: Couldn't push the result.");
+    accu = new_int(vm, as_int(val2) - as_int(val1));
     DISPATCH();
   }
 
  OP_AVM_Le: {
     DEBUG_MESSAGE();
     AVM_value_t val1 = apop(vm->astack); // y
-    AVM_value_t val2 = apop(vm->astack); // x
+    AVM_value_t val2 = accu; // x
 
     if (!is_int(val1) || !is_int(val2)) {
       error("AVM_Le: Expected two integer values.");
     }
 
-    if (!apush(vm->astack, new_bool(vm, as_int(val2) <= as_int(val1)))) // x <= y
-      error("AVM_Le: Couldn't push the result.");
+    accu = new_bool(vm, as_int(val2) <= as_int(val1));
     DISPATCH();
   }
 
  OP_AVM_Eq: {
     DEBUG_MESSAGE();
-    AVM_value_t val1 = apop(vm->astack);
+    AVM_value_t val1 = accu;
     AVM_value_t val2 = apop(vm->astack);
 
     if (!is_int(val1) || !is_int(val2)) {
       error("AVM_Eq: Expected two integer values.");
     }
 
-    if (!apush(vm->astack, new_bool(vm, as_int(val1) == as_int(val2)))) // x == y
-      error("AVM_Eq: Couldn't push the result.");
+    accu = new_bool(vm, as_int(val1) == as_int(val2));
     DISPATCH();
   }
 
  OP_AVM_Apply: {
     DEBUG_MESSAGE();
-    // Pop a function and an argument from astack.
-    AVM_value_t func = apop(vm->astack);
+    AVM_value_t func = accu;
     AVM_value_t arg = apop(vm->astack);
 
     AVM_object_t *obj = as_obj(func);
@@ -212,18 +211,17 @@ AVM_value_t run(AVM_VM* vm) {
     AVM_clos_t *clos = (AVM_clos_t*)(obj + 1);
 
     // Push the current address and the environment to rstack.
+    /* To be confirmed: Do not we store vm->cache here? */
     AVM_ret_frame_t *new_frame = malloc(sizeof(AVM_ret_frame_t));
-    new_frame->addr = vm->pc;
-    new_frame->penv = vm->env->penv;
+    new_frame->addr   = vm->pc;
+    new_frame->penv   = vm->env->penv;
     new_frame->offset = vm->env->offset;
     if (!rpush(vm->rstack, new_frame))
       error("AVM_Apply: Couldn't push the return address");
 
     // Extend the environment.
     vm->env->offset = vm->env->cache->size;
-    vm->env->penv = clos->penv;
-    if (extend(vm->env, func) == NULL)
-      error("AVM_Apply: Couldn't extend the environment.");
+    vm->env->penv   = clos->penv;
     if (extend(vm->env, arg) == NULL)
       error("AVM_Apply: Couldn't extend the environment.");
 
@@ -235,7 +233,7 @@ AVM_value_t run(AVM_VM* vm) {
  OP_AVM_TailApply: {
     DEBUG_MESSAGE();
     // Pop a function and an argument from astack.
-    AVM_value_t func = apop(vm->astack);
+    AVM_value_t func = accu;
     AVM_value_t arg = apop(vm->astack);
 
     AVM_object_t *obj = as_obj(func);
@@ -250,8 +248,6 @@ AVM_value_t run(AVM_VM* vm) {
     /* vm->env->offset = vm->env->cache.size; */
     pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
     vm->env->penv = clos->penv;
-    if (extend(vm->env, func) == NULL)
-      error("AVM_Apply: Couldn't extend the environment.");
     if (extend(vm->env, arg) == NULL)
       error("AVM_Apply: Couldn't extend the environment.");
 
@@ -270,13 +266,12 @@ AVM_value_t run(AVM_VM* vm) {
     DEBUG_MESSAGE();
     // Pop an argument.
     AVM_value_t arg = apop(vm->astack);
+    vm->accu = accu;
 
     if (is_epsilon(arg)) {
       // Push the current address to astack.
       perpetuate(vm, vm->env);
-      AVM_value_t tmp = new_clos(vm, vm->pc, vm->env->penv);
-      if (!apush(vm->astack, tmp))
-	error("AVM_Grab: Couldn't push the current address.");
+      accu = new_clos(vm, vm->pc, vm->env->penv);
 
       // Get the caller's address.
       AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
@@ -290,14 +285,6 @@ AVM_value_t run(AVM_VM* vm) {
 
       free(ret_frame);
     } else {
-      // Extend the current environment and continue.
-      /* perpetuate(vm->env); */
-      /* AVM_value_t *tmp = new_clos(vm, vm->pc, vm->env); */
-      /* if (tmp == NULL) */
-      /*   error("AVM_Grab: Couldn't create a new closure."); */
-      // Note: we do NOT allow recursive call to curried function.
-      if (extend(vm->env, epsilon) == NULL)
-	error("AVM_Grab: Couldn't extend the environment.");
       if (extend(vm->env, arg) == NULL)
 	error("AVM_Grab: Couldn't extend the environment.");
     }
@@ -306,16 +293,11 @@ AVM_value_t run(AVM_VM* vm) {
 
  OP_AVM_Return: {
     DEBUG_MESSAGE();
-    // Pop two arguments.
-    AVM_value_t arg1 = apop(vm->astack);
+    AVM_value_t arg1 = accu;
     AVM_value_t arg2 = apop(vm->astack);
     AVM_object_t *obj;
 
     if (is_epsilon(arg2)) {
-      // Push the first argument to astack.
-      if (!apush(vm->astack, arg1))
-	error("AVM_Return: Couldn't push the result to the argument stack.");
-
       // Get the caller's address.
       AVM_ret_frame_t *ret_frame = rpop(vm->rstack);
       if (ret_frame == NULL)
@@ -336,12 +318,40 @@ AVM_value_t run(AVM_VM* vm) {
 	 and extend the environment. */
       pop_array_n(vm->env->cache, vm->env->cache->size - vm->env->offset);
       vm->env->penv = clos->penv;
-      if (extend(vm->env, arg1) == NULL)
-	error("AVM_Return: Couldn't extend the environment.");
       if (extend(vm->env, arg2) == NULL)
 	error("AVM_Grab: Couldn't extend the environment.");
       vm->pc = clos->addr;
     }
+    DISPATCH();
+  }
+
+ OP_AVM_Dummies: {
+    DEBUG_MESSAGE();
+    vm->accu = accu;
+    int count = instr->access;
+    for (int i = 0; i < count; ++i)
+      if (!extend(vm->env, new_clos(vm, 0, NULL)))
+	error("AMV_Dummies: Couldn't extend the environment.");
+    DISPATCH();
+  }
+
+ OP_AVM_Update: {
+    int idx = instr->access;
+    AVM_value_t dummy = lookup(vm->env, idx);
+    AVM_object_t* dummy_obj = NULL;
+    AVM_object_t* accu_obj = NULL;
+
+    if (!(is_obj(dummy)
+	  && (dummy_obj = as_obj(dummy), dummy_obj->kind == AVM_ObjClos)))
+      error("AVM_Update: Expected env[%d] to be a closure", idx);
+    if (!(is_obj(accu)
+	  && (accu_obj = as_obj(accu), accu_obj->kind == AVM_ObjClos)))
+      error("AVM_Update: Expected accu to be a closure");
+
+    AVM_clos_t* dummy_clos = (AVM_clos_t*)(dummy_obj + 1);
+    AVM_clos_t* accu_clos  = (AVM_clos_t*)(accu_obj  + 1);
+    dummy_clos->addr = accu_clos->addr;
+    dummy_clos->penv = accu_clos->penv;
     DISPATCH();
   }
 
