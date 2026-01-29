@@ -18,16 +18,18 @@ where `<cmd/0>` is one of the following words,
 
 	<cmd/0> ∈ { let , endlet , add  , eq   , sub
 	          , le  , app    , tapp , mark , grab
-	          , ret , halt   }
+	          , ret , halt   , push   }
 	
 and `<cmd/1>` takes one of the following forms,
 
 	<cmd/1> ::= load <int>
 	          | load <bool>
 	          | acc  <nat>
-	          | b    <lab> { unconditional jump }
-	          | bf   <lab> {   jump-if-false    }
-	          | clos <lab> {      closure       }
+	          | b    <lab> {  unconditional jump   }
+	          | bf   <lab> {    jump-if-false      }
+	          | clos <lab> {       closure         }
+			  | dum  <nat> {       dummies         }
+			  | upd  <nat> { update the n-th dummy }
 			  
 	<nat>  ∈ {0, 1, …}
 	<bool> ∈ {true, false}
@@ -66,35 +68,36 @@ Below is an example of the bytecode. The example is translated from
 modification.
 
 ```
-    ; Test Program
-    ; Computing 0 + 1 + … + 10
+; let rec sum x a =
+;     if x = 0 then a
+;     else sum (x - 1) (x + a)
+; in sum 10 0
 main:
-    clos F_sum
-    let
+    dum 1
+    clos sum
+    upd 0			; env = [sum]
     mark
-    load 0
-    load 10
-    acc 0			; F_sum
+    load 0  push
+    load 10 push
+    acc 0
     app
     endlet
     ret
-    
-F_sum:
-    grab
-    load 0
-    acc 2
+sum:
+    grab			; env = [a x sum]
+    load 0 push
+    acc 1
     eq
-    bf L_00
+    bf L00
     acc 0
     ret
-    
-L_00:
-    acc 0
+L00:
+    acc 0  push
+    acc 1
+    add    push
+    load 1 push
+    acc 1
+    sub    push
     acc 2
-    add
-    load -1
-    acc 2
-    add
-    acc 3
     tapp
 ```
