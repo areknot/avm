@@ -355,8 +355,6 @@ AVM_value_t run(AVM_VM* vm) {
     DISPATCH();
   }
 
- OP_AVM_Halt: {
-    AVM_value_t res = apop(vm->astack);
-    return res;
-  }
+ OP_AVM_Halt:
+    return accu;
 }

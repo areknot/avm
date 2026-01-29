@@ -1,47 +1,58 @@
+; let rec tarai x y z =
+;   if x <= y then y
+;   else tarai (tarai (x - 1) y z)
+;              (tarai (y - 1) z x)
+;              (tarai (z - 1) x y)
+; in tarai 13 7 0
 main:
-    clos L_tarai
-    let
+    dum 1
+    clos tarai
+    upd 0			; env = [tarai]
     mark
-    load 0
-    load 7
-    load 13
+    load 0  push
+    load 7  push
+    load 13 push
     acc 0
     app
     endlet
     ret
-L_tarai:
+    
+tarai:
     grab
-    grab
-    acc 4
+    grab			; env = [z y x tarai]
+    acc 1 push
     acc 2
     le
-    bf L_else
-    acc 2
+    bf L00
+    acc 1
     ret
-L_else:
+L00:
     mark
-    acc 2
-    acc 4
+    acc 1  push
+    acc 2  push
+    load 1 push
     acc 0
-    load 1
-    sub
-    acc 5
-    app
+    sub    push
+    acc 3
+    app    push
+
     mark
-    acc 4
-    acc 0
-    acc 2
-    load 1
-    sub
-    acc 5
-    app
+    acc 2  push
+    acc 0  push
+    load 1 push
+    acc 1
+    sub    push
+    acc 3
+    app    push
+
     mark
-    acc 0
+    acc 0  push
+    acc 1  push
+    load 1 push
     acc 2
-    acc 4
-    load 1
-    sub
-    acc 5
-    app
-    acc 5
+    sub    push
+    acc 3
+    app    push
+
+    acc 3
     tapp

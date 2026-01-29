@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "code.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -17,6 +18,9 @@ void disassemble_instruction(AVM_code_t *code, int pc) {
   printf("%03d | ", pc);
   AVM_instr_t *instr = &code->instr[pc];
   switch (instr->kind) {
+  case AVM_Push:
+    printf("push");
+    break;
   case AVM_Ldi:
     printf("load %d", instr->const_int);
     break;
@@ -67,6 +71,12 @@ void disassemble_instruction(AVM_code_t *code, int pc) {
     break;
   case AVM_Return:
     printf("ret");
+    break;
+  case AVM_Dummies:
+    printf("dum  %d", instr->access);
+    break;
+  case AVM_Update:
+    printf("upd  %d", instr->access);
     break;
   case AVM_Halt:
     printf("halt");

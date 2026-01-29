@@ -6,36 +6,41 @@
 ;   | n -> even (n - 1)
 ; in even 21
 main:
-    mark
-    load 21
+    dum 2
+    clos odd
+    upd 0
     clos even
+    upd 1			; env = [odd even]
+    mark
+    load 21 push
+    acc 1
     app
+    endlet endlet
     ret
-
 even:
+    load 0 push			; env = [n odd even]
     acc 0
-    load 0
     eq
-    bf even_nonzero
+    bf L00
     load true
     ret
-even_nonzero:
+L00:
+    load 1 push
     acc 0
-    load 1
-    sub
-    clos odd
+    sub    push
+    acc 1
     tapp
 
 odd:
+    load 0 push			; env = [n odd even]
     acc 0
-    load 0
     eq
-    bf odd_nonzero
+    bf L01
     load false
     ret
-odd_nonzero:
+L01:
+    load 1 push
     acc 0
-    load 1
-    sub
-    clos even    
+    sub push
+    acc 2
     tapp

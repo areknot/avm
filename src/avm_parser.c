@@ -115,6 +115,8 @@ void parse_tree_read_cmd0(char *cmd0, TSNode node, AVM_instr_kind *kind,
     *kind = AVM_Return;
   else if (strcmp(cmd0, "halt") == 0)
     *kind = AVM_Halt;
+  else if (strcmp(cmd0, "push") == 0)
+    *kind = AVM_Push;
   else
     REPORT(errno, node, "Internal error: <%s> is not a <cmd0>", cmd0);
   SUCCESS(errno);
@@ -145,7 +147,9 @@ void parse_tree_read_cmd1(char* source, TSNode cmd1, AVM_instr_t* ptr_instr, int
     }
     *ptr_instr = instr;
     SUCCESS(errno);
-  } else if (strcmp(ts_node_type(cmd1), "acc") == 0) {
+  } else if (strcmp(ts_node_type(cmd1), "acc") == 0
+	     || strcmp(ts_node_type(cmd1), "dum") == 0
+	     || strcmp(ts_node_type(cmd1), "upd") == 0) {
     TSNode param = ts_node_child_by_field_name(cmd1, "index", 5);
     char buffer[AVM_LITERAL_SIZE] = {};
     parse_tree_read_text(source, param, buffer, AVM_LITERAL_SIZE, errno);
@@ -154,10 +158,14 @@ void parse_tree_read_cmd1(char* source, TSNode cmd1, AVM_instr_t* ptr_instr, int
     int value = 0;
     int count = sscanf(buffer, "%d", &value);
     if (count != 1) {
-      REPORT(errno, cmd1, "Cannot load [%s] (only support bool and naturals)",
-	     buffer);
+      REPORT(errno, cmd1, "Expected a natural number, but found [%s]", buffer);
     }
-    instr.kind = AVM_Access;
+    if (strcmp(ts_node_type(cmd1), "acc") == 0)
+      instr.kind = AVM_Access;
+    else if (strcmp(ts_node_type(cmd1), "dum") == 0)
+      instr.kind = AVM_Dummies;
+    else
+      instr.kind = AVM_Update;
     instr.access = value;
     *ptr_instr = instr;
     SUCCESS(errno);

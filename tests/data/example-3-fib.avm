@@ -1,34 +1,39 @@
+; let rec fib n =
+;   if n <= 1
+;   then 1
+;   else fib (n - 2) + fib (n - 1)
+; in fib 30
 main:
-    clos F_fib
-    let
+    dum 1
+    clos fib
+    upd 0			; env = [fib]
     mark
-    load 30
+    load 30 push
     acc 0
     app
     endlet
     ret
-
-F_fib:
+fib:
+    load 1 push			; env = [n fib]
     acc 0
-    load 1
     le
-    bf L_else
-    acc 0
-    ret
-
-L_else:
-    mark
-    acc 0
-    load 2
-    sub
-    acc 1
-    app
-    mark
-    acc 0
+    bf L00
     load 1
-    sub
+    ret
+L00:
+    mark
+    load 1 push
+    acc 0
+    sub push
+    acc 1
+    app push
+    
+    mark
+    load 2 push
+    acc 0
+    sub push
     acc 1
     app
+
     add
     ret
-    ; took 71 seconds.

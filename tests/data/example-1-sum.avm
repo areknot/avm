@@ -1,31 +1,32 @@
-    ; Test Program
-    ; Computing 0 + 1 + … + 10
+; let rec sum x a =
+;     if x = 0 then a
+;     else sum (x - 1) (x + a)
+; in sum 10 0
 main:
-    clos F_sum
-    let
+    dum 1
+    clos sum
+    upd 0			; env = [sum]
     mark
-    load 0
-    load 10
-    acc 0			; F_sum
+    load 0  push
+    load 10 push
+    acc 0
     app
     endlet
     ret
-    
-F_sum:
-    grab
-    load 0
-    acc 2
+sum:
+    grab			; env = [a x sum]
+    load 0 push
+    acc 1
     eq
-    bf L_00
+    bf L00
     acc 0
     ret
-    
-L_00:
-    acc 0
+L00:
+    acc 0  push
+    acc 1
+    add    push
+    load 1 push
+    acc 1
+    sub    push
     acc 2
-    add
-    load -1
-    acc 2
-    add
-    acc 3
     tapp

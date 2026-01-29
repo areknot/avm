@@ -33,6 +33,10 @@ typedef struct AVM_code {
 #define LDB(b)      ((AVM_instr_t){ .kind = AVM_Ldb,     .const_bool = (b) })
 #define ACCESS(i)   ((AVM_instr_t){ .kind = AVM_Access,  .access     = (i) })
 
+#define PUSH()      ((AVM_instr_t){ .kind = AVM_Push })
+#define DUM(n)      ((AVM_instr_t){ .kind = AVM_Dummies, .access = (n) })
+#define UPD(n)      ((AVM_instr_t){ .kind = AVM_Update,  .access = (n) })
+
 #define ADD()       ((AVM_instr_t){ .kind = AVM_Add })
 #define SUB()       ((AVM_instr_t){ .kind = AVM_Sub})
 #define LE()        ((AVM_instr_t){ .kind = AVM_Le })

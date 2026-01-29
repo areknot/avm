@@ -45,22 +45,24 @@ static _Bool assert_bool(AVM_value_t *v, _Bool expected) {
 
 // left + right
 static AVM_code_t make_add_program(int left, int right) {
-  static AVM_instr_t program[4];
-  program[0] = LDI(left);
-  program[1] = LDI(right);
-  program[2] = ADD();
-  program[3] = HALT();
+  static AVM_instr_t program[5];
+  program[0] = LDI(right);
+  program[1] = PUSH();
+  program[2] = LDI(left);
+  program[3] = ADD();
+  program[4] = HALT();
 
   return CODE_OF(program);
 }
 
 // left == right
 static AVM_code_t make_eq_program(int left, int right) {
-  static AVM_instr_t program[4];
+  static AVM_instr_t program[5];
   program[0] = LDI(left);
-  program[1] = LDI(right);
-  program[2] = EQ();
-  program[3] = HALT();
+  program[1] = PUSH();
+  program[2] = LDI(right);
+  program[3] = EQ();
+  program[4] = HALT();
 
   return CODE_OF(program);
 }
@@ -100,57 +102,62 @@ static AVM_code_t make_if_program(_Bool cond, int t, int f) {
 
 // (fun x -> x) arg
 static AVM_code_t make_id_apply_program(int arg) {
-  static AVM_instr_t program[7];
+  static AVM_instr_t program[8];
   // Caller
   program[0] = PUSHMARK();
   program[1] = LDI(arg);
-  program[2] = CLOSURE(5); // function entry
-  program[3] = APPLY();
-  program[4] = HALT();
+  program[2] = PUSH();
+  program[3] = CLOSURE(6); // function entry
+  program[4] = APPLY();
+  program[5] = HALT();
   // Callee
-  program[5] = ACCESS(0);
-  program[6] = RETURN();
+  program[6] = ACCESS(0);
+  program[7] = RETURN();
 
   return CODE_OF(program);
 }
 
 // (fun x -> k) arg
 static AVM_code_t make_const_apply_program(int arg, int k) {
-  static AVM_instr_t program[7];
+  static AVM_instr_t program[8];
   // Caller
   program[0] = PUSHMARK();
   program[1] = LDI(arg);
-  program[2] = CLOSURE(5);
-  program[3] = APPLY();
-  program[4] = HALT();
+  program[2] = PUSH();
+  program[3] = CLOSURE(6);
+  program[4] = APPLY();
+  program[5] = HALT();
   // Callee: PushMark; Ldi k; Return
-  program[5] = LDI(k);
-  program[6] = RETURN();
+  program[6] = LDI(k);
+  program[7] = RETURN();
 
   return CODE_OF(program);
 }
 
 // Multiple arguments: (fun x -> fun y -> x + y) x y
 static AVM_code_t make_add2_full_program(int x, int y) {
-  static AVM_instr_t program[11];
+  static AVM_instr_t program[14];
 
   // caller:
   program[0] = PUSHMARK(); // [e]
-  program[1] = LDI(y); // [y, e]
-  program[2] = LDI(x); // [x, y, e]
-  program[3] = CLOSURE(6); // [<add2>, x, y, e]
-  program[4] = APPLY();
-  program[5] = HALT();
+  program[1] = LDI(y);
+  program[2] = PUSH(); // [y, e]
+  program[3] = LDI(x);
+  program[4] = PUSH(); // [x, y, e]
+  program[5] = CLOSURE(8);
+  program[6] = APPLY();
+  program[7] = HALT();
 
   // callee
   // stack: [y, e]
-  program[6] = GRAB(); // env[0]=y, env[1]=<cont>, env[2]=x, env[3]=<add2>
+  program[8] = GRAB(); // env = [y, x]
   // stack: [e]
-  program[7] = ACCESS(0); // y
-  program[8] = ACCESS(2); // x
-  program[9] = ADD();
-  // stack: [x+y, e]
-  program[10] = RETURN();
+  program[9] = ACCESS(0); // y
+  program[10] = PUSH();
+  program[11] = ACCESS(1); // x
+  program[12] = ADD();
+  // stack: [e]
+  program[13] = RETURN();
 
   return CODE_OF(program);
 }
@@ -158,29 +165,27 @@ static AVM_code_t make_add2_full_program(int x, int y) {
 // Partial application then second application:
 // let f = (fun x -> fun y -> x + y) x in f y => x + y
 static AVM_code_t make_add2_partial_program(int x, int y) {
-  static AVM_instr_t program[16];
+  static AVM_instr_t program[19];
 
-  // main:
-  program[0] = PUSHMARK(); // [e]
-  program[1] = LDI(x); // [x, e]
-  program[2] = CLOSURE(11); // [<11, env>, x, e]
-  program[3] = APPLY(); // [<11, env>, x, e] -> [<12, env'>]
-  program[4] = LET();
-  program[5] = PUSHMARK(); // [e]
-  program[6] = LDI(y); // [y, e]
-  program[7] = ACCESS(0); // [<12, env'>, y, e]
-  program[8] = APPLY(); // [<12, env'>, y, e] -> [x+y, e]
-  program[9] = ENDLET();
-  program[10] = HALT();
-
-  // (fun x -> fun y -> x + y) x
-  // stack = [e], env = [x, <11, [...]>]
-  program[11] = GRAB();
-  // stack = [e], env = [y, <12, [...]>, x, <11, [...]>]
-  program[12] = ACCESS(0);
-  program[13] = ACCESS(2);
-  program[14] = ADD(); // [x+y, e]
-  program[15] = RETURN();
+  program[0]  = PUSHMARK();
+  program[1]  = LDI(x);
+  program[2]  = PUSH();
+  program[3]  = CLOSURE(13);
+  program[4]  = APPLY();
+  program[5]  = LET();
+  program[6]  = PUSHMARK();
+  program[7]  = LDI(y);
+  program[8]  = PUSH();
+  program[9]  = ACCESS(0);
+  program[10]  = APPLY();
+  program[11] = ENDLET();
+  program[12] = HALT();
+  program[13] = GRAB();
+  program[14] = ACCESS(0);
+  program[15] = PUSH();
+  program[16] = ACCESS(1);
+  program[17] = ADD();
+  program[18] = RETURN();
 
   return CODE_OF(program);
 }
@@ -188,24 +193,23 @@ static AVM_code_t make_add2_partial_program(int x, int y) {
 // TailApply:
 // (fun x -> (fun y -> 1 + y) x) x => 1 + x
 static AVM_code_t make_tailapply_program(int x) {
-  static AVM_instr_t program[12];
+  static AVM_instr_t program[15];
 
-  // main:
-  program[0] = PUSHMARK();
-  program[1] = LDI(x);
-  program[2] = CLOSURE(5);
-  program[3] = APPLY();
-  program[4] = HALT();
-
-  // (fun y -> 1 + y) x
-  program[5] = ACCESS(0);
-  program[6] = CLOSURE(8);
-  program[7] = TAILAPPLY();
-
-  program[8] = ACCESS(0);
-  program[9] = LDI(1);
-  program[10] = ADD();
-  program[11] = RETURN();
+  program[0]  = PUSHMARK();
+  program[1]  = LDI(x);
+  program[2]  = PUSH();
+  program[3]  = CLOSURE(6);
+  program[4]  = APPLY();
+  program[5]  = HALT();
+  program[6]  = ACCESS(0);
+  program[7]  = PUSH();
+  program[8]  = CLOSURE(10);
+  program[9]  = TAILAPPLY();
+  program[10] = ACCESS(0);
+  program[11] = PUSH();
+  program[12] = LDI(1);
+  program[13] = ADD();
+  program[14] = RETURN();
 
   return CODE_OF(program);
 }
@@ -213,57 +217,58 @@ static AVM_code_t make_tailapply_program(int x) {
 // Call given function:
 // (fun f -> fun x -> f x) (fun x -> fun y -> x + y) x y
 static AVM_code_t make_hof_program(int x, int y) {
-  static AVM_instr_t program[17];
+  static AVM_instr_t program[22];
 
-  // main:
-  program[0] = PUSHMARK();
-  program[1] = LDI(y);
-  program[2] = LDI(x);
-  program[3] = CLOSURE(11);
-  program[4] = CLOSURE(7);
-  program[5] = APPLY();
-  program[6] = JUMP(16);
-
-  // T(fun x -> f x)
-  program[7] = GRAB();
-  program[8] = ACCESS(0);
-  program[9] = ACCESS(2);
-  program[10] = TAILAPPLY();
-
-  // T(fun y -> x + y)
-  program[11] = GRAB();
-  program[12] = ACCESS(0);
-  program[13] = ACCESS(2);
-  program[14] = ADD();
-  program[15] = RETURN();
-
-  program[16] = HALT();
+  program[0]  = PUSHMARK();
+  program[1]  = LDI(y);
+  program[2]  = PUSH();
+  program[3]  = LDI(x);
+  program[4]  = PUSH();
+  program[5]  = CLOSURE(15);
+  program[6]  = PUSH();
+  program[7]  = CLOSURE(10);
+  program[8]  = APPLY();
+  program[9]  = JUMP(21);
+  program[10] = GRAB();
+  program[11] = ACCESS(0);
+  program[12] = PUSH();
+  program[13] = ACCESS(1);
+  program[14] = TAILAPPLY();
+  program[15] = GRAB();
+  program[16] = ACCESS(0);
+  program[17] = PUSH();
+  program[18] = ACCESS(1);
+  program[19] = ADD();
+  program[20] = RETURN();
+  program[21] = HALT();
 
   return CODE_OF(program);
 }
 
 // x - y
 static AVM_code_t make_sub_program(int x, int y) {
-  static AVM_instr_t program[4];
+  static AVM_instr_t program[5];
 
   // main:
-  program[0] = LDI(x);
-  program[1] = LDI(y);
-  program[2] = SUB();
-  program[3] = HALT();
+  program[0] = LDI(y);
+  program[1] = PUSH();
+  program[2] = LDI(x);
+  program[3] = SUB();
+  program[4] = HALT();
 
   return CODE_OF(program);
 }
 
 // x >= y
 static AVM_code_t make_le_program(int x, int y) {
-  static AVM_instr_t program[4];
+  static AVM_instr_t program[5];
 
   // main:
-  program[0] = LDI(x);
-  program[1] = LDI(y);
-  program[2] = LE();
-  program[3] = HALT();
+  program[0] = LDI(y);
+  program[1] = PUSH();
+  program[2] = LDI(x);
+  program[3] = LE();
+  program[4] = HALT();
 
   return CODE_OF(program);
 }

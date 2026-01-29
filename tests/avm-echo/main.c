@@ -30,6 +30,9 @@ int main(void) {
       printf("%3d | ", i);
       AVM_instr_t instr = code->instr[i];
       switch (instr.kind) {
+      case AVM_Push:
+	printf("push");
+	break;
       case AVM_Ldi:
         printf("load %d", instr.const_int);
         break;
@@ -81,6 +84,12 @@ int main(void) {
       case AVM_Return:
         printf("ret");
         break;
+      case AVM_Dummies:
+	printf("dum  %d", instr.access);
+	break;
+      case AVM_Update:
+	printf("upd  %d", instr.access);
+	break;
       case AVM_Halt:
         printf("halt");
 	break;
