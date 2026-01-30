@@ -38,26 +38,24 @@ void drop_stack(AVM_stack_t* stack) {
 
 AVM_stack_push_code push_stack(AVM_stack_t* stack, AVM_value_t elt) {
   AVM_stack_push_code code = AVM_stack_push_success;
-  AVM_segment_t* top = stack->top;
-  if (top->size >= AVM_SEGMENT_CAP) {
+  if (stack->top->size >= AVM_SEGMENT_CAP) {
     /* Stack overflow */
     code = AVM_stack_push_overflow;
     AVM_segment_t* top_ = NULL;
     if (stack->cache != NULL) {
       top_ = stack->cache;
       stack->cache = NULL;
-      assert(top->size == 0);
+      assert(top_->size == 0);
     } else {
       top_ = make_segment();
       if (top_ == NULL) return AVM_stack_push_failure;
       top_->size = 0;
     }
-    top_->prompt = top->prompt;
-    top_->next   = top;
-    top = top_;
+    top_->prompt = stack->top->prompt;
+    top_->next   = stack->top;
+    stack->top   = top_;
   }
-  top->contents[top->size] = elt;
-  ++top->size;
+  stack->top->contents[stack->top->size++] = elt;
   return code;
 }
 
@@ -70,13 +68,22 @@ AVM_stack_pop_code pop_stack(AVM_stack_t* stack, AVM_value_t* popped) {
     assert(top->next == NULL);
     return AVM_stack_pop_failure; 
   }
-  --top->size;
-  *popped = top->contents[top->size];
+  *popped = top->contents[--top->size];
   if (top->size == 0 && top->next != NULL) {
     /* Stack underflow */
     code = AVM_stack_pop_underflow;
+    if (stack->cache != NULL) drop_segment(stack->cache);
     stack->cache = top;
     stack->top   = top->next;;
   }
   return code;
+}
+
+void stack_foreach(AVM_stack_t* stack, void (*action)(AVM_value_t)) {
+  AVM_segment_t* seg = stack->top;
+  while (seg != NULL) {
+    for (AVM_value_t* vp = seg->contents + seg->size - 1; vp >= seg->contents; --vp)
+      action(*vp);
+    seg = seg->next;
+  }
 }

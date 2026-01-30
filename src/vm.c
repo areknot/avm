@@ -48,7 +48,7 @@ void finalize_vm(AVM_VM *vm) {
   /* `penv` has been freed. */
   free(vm->env);
   /* Free argument-stack */
-  drop_array(vm->astack);
+  drop_astack(vm->astack);
   /* Free the VM */
   free(vm);
 }

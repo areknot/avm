@@ -2,6 +2,7 @@
 #include "memory.h"
 #include "debug.h"
 #include "runtime.h"
+#include "stack.h"
 #include "vm.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -144,8 +145,11 @@ static void mark(struct AVM_VM *vm) {
   mark_value(vm, vm->accu);
   size_t i;
   // Mark vm->astack
-  for (i = 0; i < array_size(vm->astack); ++i) {
-    mark_value(vm, (AVM_value_t)(uintptr_t)array_elem_unsafe(vm->astack, i));
+  AVM_segment_t* seg = vm->astack->top;
+  while (seg != NULL) {
+    for (AVM_value_t* vp = seg->contents + seg->size - 1; vp >= seg->contents; --vp)
+      mark_value(vm, *vp);
+    seg = seg->next;
   }
   // mark vm->rstack
   for (i = 0; i < array_size(vm->rstack); ++i) {

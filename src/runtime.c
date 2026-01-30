@@ -2,6 +2,7 @@
 #include "runtime.h"
 #include "array.h"
 #include "memory.h"
+#include "stack.h"
 #include "vm.h"
 #include "debug.h"
 #include <stdint.h>
@@ -10,23 +11,21 @@
 
 // TODO: Add better error handling
 void print_astack(AVM_astack_t *st);
-void print_rstack(AVM_astack_t *st);
+void print_rstack(AVM_rstack_t *st);
 void print_ret_frame(AVM_ret_frame_t *f);
 void print_env(AVM_env_t *env);
 
 AVM_astack_t* init_astack() {
-  return make_array(ARRAY_MINIMAL_CAP);
+  return init_stack();
 }
 
 void drop_astack(AVM_astack_t* stack) {
-  drop_array(stack);
+  drop_stack(stack);
 }
 
 AVM_value_t apop(AVM_astack_t* stp) {
-  AVM_value_t val = (uint64_t)(uintptr_t)array_last(stp);
-  int count = pop_array(stp);
-
-  if (count == 0)
+  AVM_value_t val = 0;
+  if (pop_stack(stp, &val) == AVM_stack_pop_failure)
     error("apop: Failed to pop an argument.");
 
 #ifdef DEBUG_TRACE_EXECUTION
@@ -48,8 +47,13 @@ _Bool apush(AVM_astack_t* stp, AVM_value_t val) {
   print_astack(stp);
   printf("\n");
 #endif
-  int count = push_array(stp, (void *)(uintptr_t)val);
-  return (count != 0);
+  AVM_stack_push_code code = push_stack(stp, val);
+#ifdef DEBUG_TRACE_EXECUTION
+  printf("Modified astack: ");
+  print_astack(stp);
+  printf("\n");
+#endif
+  return code != AVM_stack_push_failure;
 }
 
 AVM_rstack_t* init_rstack() {
@@ -186,17 +190,18 @@ void print_clos(AVM_clos_t *clos) {
   printf("<clos(%d, %p)>", clos->addr, clos->penv);
 }
 
+void print_stack_value(AVM_value_t value) {
+  printf(" ");
+  print_value(value);
+}
+
 void print_astack(AVM_astack_t *st) {
   printf("[");
-  int size = array_size(st);
-  for (int i = 1; i <= size; ++i) {
-    printf(" ");
-    print_value((AVM_value_t)(uintptr_t)array_elem_unsafe(st, size - i));
-  }
+  stack_foreach(st, print_stack_value);
   printf(" ]");
 }
 
-void print_rstack(AVM_astack_t *st) {
+void print_rstack(AVM_rstack_t *st) {
   printf("[");
   int size = array_size(st);
   for (int i = 1; i <= size; ++i) {

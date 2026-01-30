@@ -1,9 +1,12 @@
 #pragma once
 
-#include "runtime.h"
+#include <stddef.h>
+#include <stdint.h>
 
 #define AVM_INIT_PROMPT   0
-#define AVM_SEGMENT_CAP 128
+#define AVM_SEGMENT_CAP   3
+
+typedef uint64_t AVM_value_t;
 
 typedef struct AVM_segment {
   unsigned int prompt;		/* Unused currently. */
@@ -35,4 +38,4 @@ typedef enum {
 } AVM_stack_pop_code;
 AVM_stack_pop_code pop_stack(AVM_stack_t* stack, AVM_value_t* popped);
 
-
+void stack_foreach(AVM_stack_t* stack, void (*action)(AVM_value_t));

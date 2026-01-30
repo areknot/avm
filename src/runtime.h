@@ -3,8 +3,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "array.h"
+#include "stack.h"
 
-typedef array_t AVM_astack_t;
+typedef AVM_stack_t AVM_astack_t;
 typedef array_t AVM_rstack_t;
 
 typedef struct {
@@ -110,7 +111,7 @@ void remove_head(struct AVM_VM *vm, AVM_env_t *env);
 void print_value(AVM_value_t val);
 void print_clos(AVM_clos_t *clos);
 void print_astack(AVM_astack_t *st);
-void print_rstack(AVM_astack_t *st);
+void print_rstack(AVM_rstack_t *st);
 void print_ret_frame(AVM_ret_frame_t *f);
 void print_env(AVM_env_t *env);
 void print_penv(array_t *env);

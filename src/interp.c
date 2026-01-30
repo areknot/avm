@@ -177,6 +177,12 @@ AVM_value_t run(AVM_VM* vm) {
     AVM_value_t val2 = accu; // x
 
     if (!is_int(val1) || !is_int(val2)) {
+      print_value(val1);
+      putchar('\n');
+      print_value(val2);
+      putchar('\n');
+      print_env(vm->env);
+      putchar('\n');
       error("AVM_Le: Expected two integer values.");
     }
 
@@ -336,6 +342,7 @@ AVM_value_t run(AVM_VM* vm) {
   }
 
  OP_AVM_Update: {
+    DEBUG_MESSAGE();
     int idx = instr->access;
     AVM_value_t dummy = lookup(vm->env, idx);
     AVM_object_t* dummy_obj = NULL;
