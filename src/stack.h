@@ -3,8 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define AVM_INIT_PROMPT   0
-#define AVM_SEGMENT_CAP   3
+#define AVM_INIT_PROMPT 0
+#define AVM_SEGMENT_CAP 1024
 
 typedef uint64_t AVM_value_t;
 
